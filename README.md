@@ -16,7 +16,7 @@
 
 ## 📚 About this project
 
-PKCO is an Android app built to fulfil the **Group A assignment** of the **Database Security** course, led by **Professor Martin Lee**, who is both the course instructor and our tutor and who provides the milestones and releases for the project.
+PKCO is an Android app developed to fulfill the **Group A assignment** for the **Database Security** course in Caroline University's [Master of Computer Information Systems program](https://caroline.edu/bbs/content.php?co_id=academics02_3). The course is led by **Professor Martin Lee**, our instructor and tutor, who guides the project through structured milestones.
 
 The app helps people who juggle many tasks and study streams stop losing track of where their information lives. Instead of notes scattered across several apps, PKCO keeps ideas, links and study snippets in one searchable, organized workspace on the phone.
 
