@@ -72,7 +72,7 @@ Four Room tables hold everything in Phase 1: notes, categories, tags, and a link
 | Tag | `id` (UUID), `name` (unique, not case-sensitive) |
 | NoteTag | `noteId`, `tagId` (a note can have many tags; a tag can be on many notes) |
 
-**Relevance rule (proposed, to be confirmed).** Each word of the query is matched, ignoring case and allowing partial matches, and the points are added up: a title match scores 3, a tag or category name match scores 2, and a body match scores 1. Results are sorted by score, then by most recently edited. This runs as one Room query, with no extra library.
+**Relevance rule.** Each word of the query is matched, ignoring case and allowing partial matches, and the points are added up: a title match scores 3, a tag or category name match scores 2, and a body match scores 1. Results are sorted by score, then by most recently edited. This runs as one Room query, with no extra library.
 
 ## User workflow
 
@@ -125,3 +125,5 @@ These seven items were not in the original plan; they were identified, discussed
 | Nested folders | Review of Milestone 2 | 3 |
 
 Milestone 1 listed image-to-text in the MVP, while Milestone 2 places it in Phase 2. Milestone 2 governs, so Phase 1 contains no image features.
+
+**Decision (October 10, 2026):** database encryption is not part of Phase 1; it can be revisited in Phase 2 if the course requires it.

@@ -54,9 +54,9 @@ Claude's own behavior before any code is already worth logging: five small addit
 | --- | --- | --- |
 | Claude said it could not read the milestone PDFs; they were readable through the project and were read after checking | Contradicts or misstates | None; corrected within one turn |
 | Claude added a Sprint 0 that Instruction3 does not ask for | Introduces work not planned | Setup that was needed anyway, but it is extra scope from Claude |
-| Claude proposed relevance weights (title 3, tag or category 2, body 1) | Adds detail not in Milestone 2 | Pending Felipe's confirmation |
+| Claude proposed relevance weights (title 3, tag or category 2, body 1) | Adds detail not in Milestone 2 | Confirmed by Felipe on October 10 |
 | Claude added list filtering by category or tag to Phase 1 | Adds scope beyond Milestone 2's wording | Flagged by a comment in Milestone 2.1 for Felipe to keep or remove |
-| Claude added reserved `deletedAt` and `ownerId` columns for Phase 2 | Adds complexity | Small, but they are Claude's choice, not Milestone 2's |
+| Claude added reserved `deletedAt` and `ownerId` columns for Phase 2 | Adds complexity | Small, but they are Claude's choice, not Milestone 2's; Felipe kept them as sync preparation |
 | Claude flagged that the free plan lacks Claude Code | Useful suggestion | Felipe upgraded to Pro before Sprint 1 |
 | Claude noticed Milestone 1 and 2 disagree on image-to-text | Useful suggestion | Milestone 2 chosen as baseline |
 | Claude flagged that authentication in Phase 3 conflicts with Phase 2 cloud sync, and that Android 16 limits supported phones | Useful suggestion | Authentication moved to Phase 2; Android 16 kept because the test phone runs it |
