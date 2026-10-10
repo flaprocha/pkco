@@ -65,6 +65,8 @@ Outside libraries and tools are credited in the [Credits](#-credits-and-academic
 ```text
 pkco-android/
 ├── doc/                 Project documentation
+│   ├── Milestone-1-Project-Progress-Report.md
+│   ├── Milestone-2-Feature-and-Workflow.md
 │   ├── Milestone-2.1-Feature-and-Workflow.md
 │   └── Sprint-0-Setup-and-Plan.md
 ├── README.md            You are here
