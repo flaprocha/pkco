@@ -127,3 +127,5 @@ These seven items were not in the original plan; they were identified, discussed
 Milestone 1 listed image-to-text in the MVP, while Milestone 2 places it in Phase 2. Milestone 2 governs, so Phase 1 contains no image features.
 
 **Decision (October 10, 2026):** database encryption is not part of Phase 1; it can be revisited in Phase 2 if the course requires it.
+
+The living backlog, with an ID and a status for each item, is kept in [Backlog.md](Backlog.md).
