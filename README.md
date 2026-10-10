@@ -41,7 +41,7 @@ The project is planned in three phases. **Only Phase 1 is built for this class p
 | **2 · Competitive** *(designed for, not built)* | Authentication · cloud sync across devices · OCR and AI extraction from screenshots · automatic timestamps and geolocation |
 | **3 · Nice to have** *(ideas only)* | Voice-to-text notes · web clipper · AI summaries and flashcards · item status, events, goals and other backlog ideas |
 
-Full details are in [`doc/Milestone-2.1-Feature-and-Workflow.md`](doc/Milestone-2.1-Feature-and-Workflow.md).
+Full details are in [`docs/Milestone-2.1-Feature-and-Workflow.md`](docs/Milestone-2.1-Feature-and-Workflow.md).
 
 ---
 
@@ -64,7 +64,7 @@ Outside libraries and tools are credited in the [Credits](#-credits-and-academic
 
 ```text
 pkco-android/
-├── doc/                 Project documentation
+├── docs/                Project documentation
 │   ├── Milestone-1-Project-Progress-Report.md
 │   ├── Milestone-2-Feature-and-Workflow.md
 │   ├── Milestone-2.1-Feature-and-Workflow.md
@@ -79,7 +79,7 @@ pkco-android/
 
 Part of this assignment is an experiment in AI-assisted development. Over eight short sprints, **Claude** plans each step and writes the instructions, and **Claude Code** implements them, while the team member follows the recommendations and logs where the AI helped, drifted or needed correction.
 
-- Plan and sprint roadmap: [`doc/Sprint-0-Setup-and-Plan.md`](doc/Sprint-0-Setup-and-Plan.md)
+- Plan and sprint roadmap: [`docs/Sprint-0-Setup-and-Plan.md`](docs/Sprint-0-Setup-and-Plan.md)
 - Sprint-by-sprint record: `SPRINT_LOG.md` (created during Sprint 0)
 
 AI tools are permitted in this course, and the team is responsible for being able to explain all submitted code and design decisions.

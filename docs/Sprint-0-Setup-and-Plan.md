@@ -28,7 +28,7 @@ Sprint 0 is Claude's addition and does not count toward the eight sprints; it ma
 - [ ] Connect the phone with a data cable and accept the USB debugging prompt; the phone should appear in Android Studio's device list
 - [ ] Install Git for Windows and clone `https://github.com/flaprocha/pkco-android`
 - [ ] Install Claude Code by following Anthropic's official setup instructions, sign in with the Pro account, and open it in the cloned folder
-- [ ] Save Milestone 2.1 and this document as Markdown in the `doc` folder of the repo
+- [ ] Save Milestone 2.1 and this document as Markdown in the `docs` folder of the repo
 - [ ] Create an empty `SPRINT_LOG.md` in the repo using the template at the end of this document
 
 ## Roadmap: Sprints 1 to 8
