@@ -69,7 +69,7 @@ pkco-android/
 │   ├── Milestone-1-Project-Progress-Report.md
 │   ├── Milestone-2-Feature-and-Workflow.md
 │   ├── Milestone-2.1-Feature-and-Workflow.md
-│   └── Sprint-0-Setup-and-Plan.md
+│   └── Sprint-Plan.md
 ├── README.md            You are here
 └── (Android project is added in Sprint 1)
 ```
@@ -80,8 +80,8 @@ pkco-android/
 
 Part of this assignment is an experiment in AI-assisted development. Over eight short sprints, **Claude** plans each step and writes the instructions, and **Claude Code** implements them, while the team member follows the recommendations and logs where the AI helped, drifted or needed correction.
 
-- Plan and sprint roadmap: [`docs/Sprint-0-Setup-and-Plan.md`](docs/Sprint-0-Setup-and-Plan.md)
-- Sprint-by-sprint record: `SPRINT_LOG.md` (created during Sprint 0)
+- Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
+- Sprint-by-sprint record: `SPRINT_LOG.md` (created in Sprint 1)
 
 AI tools are permitted in this course, and the team is responsible for being able to explain all submitted code and design decisions.
 
