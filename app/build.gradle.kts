@@ -36,6 +36,11 @@ android {
     }
 }
 
+// Room writes the schema JSON here; it is committed so migrations can be checked.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -43,7 +48,6 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
 
-    // Room is added now; entities, DAOs and the database come in Sprint 2.
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)

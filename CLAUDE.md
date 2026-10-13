@@ -22,6 +22,13 @@ Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic 
 - UUID primary keys everywhere, no auto-increment. UI talks only to a repository interface; Room is the first implementation.
 - Versioned Room database with exported schema and migrations; no destructive fallback.
 
+## Data layer (Sprint 2)
+- Package `com.example.pkco.data`: `entity/` (Note, Category, Tag, NoteTag, NoteWithDetails), `dao/`, `PkcoDatabase` (version 1, `getInstance(context)`), `repository/` (`NoteRepository` interface, `RoomNoteRepository` with an injectable clock).
+- Tables `notes`, `categories`, `tags`, `note_tags`. Category and tag names use NOCASE collation with a unique index.
+- Notes are soft-deleted (`deletedAt` set); read queries filter `deletedAt IS NULL`. Unused tags are kept.
+- Schema JSON is exported to `app/schemas/` (KSP arg `room.schemaLocation`) and committed. Any schema change needs a version bump and a migration.
+- Tests: `app/src/androidTest/.../data/RoomNoteRepositoryTest.kt`, in-memory database, run with `connectedDebugAndroidTest`.
+
 ## Relevance rule
 Each query word is matched case-insensitively with partial matches; points add up: title match 3, tag or category name match 2, body match 1. Sort by score, then by most recently edited (`updatedAt`). One Room query, no extra library.
 
@@ -30,11 +37,12 @@ Each query word is matched case-insensitively with partial matches; points add u
 $env:JAVA_HOME = '<Android Studio folder>\jbr'   # session only
 $env:ANDROID_HOME = '<Android SDK folder>'        # session only
 .\gradlew.bat assembleDebug
-.\gradlew.bat testDebugUnitTest
+.\gradlew.bat connectedDebugAndroidTest   # instrumented tests, phone connected and unlocked
 .\gradlew.bat installDebug
 & "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n com.example.pkco/.MainActivity
 ```
-If drive C: is low on space, also set `GRADLE_USER_HOME`, `TMP` and `TEMP` to folders on another drive for the session (done in Sprint 1).
+There are no JVM unit tests (`testDebugUnitTest`) at the moment: Room tests need a device, and Robolectric is not used.
+If drive C: is low on space, also set `GRADLE_USER_HOME`, `TMP` and `TEMP` to folders on another drive for the session (done in Sprint 1). A full C: also stops Windows' swap file from growing, and the Gradle JVM then crashes with "insufficient memory"; free space on C: and close other programs, or pass `-Dorg.gradle.jvmargs=-Xmx1536m` for the session.
 Test phone: Motorola moto g stylus 2025, Android 16.
 
 ## JDK note
