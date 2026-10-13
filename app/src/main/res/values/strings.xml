@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PKCO</string>
+    <string name="empty_notes">No notes yet. Tap + to add one.</string>
+    <string name="add_note">Add note</string>
+</resources>
