@@ -62,6 +62,22 @@ Claude's own behavior before any code is already worth logging: five small addit
 | Claude flagged that authentication in Phase 3 conflicts with Phase 2 cloud sync, and that Android 16 limits supported phones | Useful suggestion | Authentication moved to Phase 2; Android 16 kept because the test phone runs it |
 | Attaching the GitHub repo failed twice (account not linked, then a not-found error) before a lookup found the exact name | Requires intervention | Felipe had to link GitHub; repo is now attached |
 
+## Observations during Sprint 1
+
+Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. The sprint-by-sprint record itself is in `SPRINT_LOG.md`.
+
+| Observation | Category | Effect |
+| --- | --- | --- |
+| Claude's first install steps left out the PATH fix, so `claude` was not recognized | Contradicts or misstates | Felipe fixed the user PATH; corrected within the setup |
+| Claude assumed the default Android SDK path; the SDK is at `D:\Tools\Android\Sdk` | Contradicts or misstates | Added an environment note to the prompt |
+| Claude worried that JDK 25 might not work with the build; it did | Adds unneeded caution | None |
+| Claude Code stopped and asked when the C: drive was full | Useful surprise | Felipe chose D: for the session; the Gradle cache now lives on D: permanently |
+| Claude Code downgraded the Compose BOM and Lifecycle to keep compileSdk 36 | Deviates from the plan | Accepted; matches the Android 16 test phone |
+| Claude Code added `allowBackup="false"` and a placeholder unit test | Introduces work not planned | Harmless; the test is replaced in Sprint 2 |
+| Claude Code's logged times (20:44-21:50) differ from Felipe's (20:47-21:46) | Contradicts or misstates | Felipe kept the logged times |
+| The "+" button has no action | Expected | Wired up in Sprint 3 |
+| Claude Code chose Room 2.8.5; Room 3 (`androidx.room3`) also exists | Decision | Felipe confirmed Room 2.8.5 and compileSdk 36 |
+
 ## Sprint log template
 
 After each sprint, fill one row, and use the deviations column for the Instruction3 observations listed below the table; copy this table into `SPRINT_LOG.md` in the repo.
