@@ -5,7 +5,7 @@ PKCO (Personal Knowledge and Context Organizer) is a native Android notes app fo
 ## Stack and versions
 - Kotlin (AGP 9 built-in Kotlin; Compose compiler plugin 2.4.21), Jetpack Compose, Material 3
 - Android Gradle Plugin 9.4.1, Gradle 9.8.1 (wrapper), KSP 2.3.12
-- Compose BOM 2026.06.01, activity-compose 1.13.0, lifecycle-runtime-ktx 2.10.0
+- Compose BOM 2026.06.01, activity-compose 1.13.0, lifecycle-runtime-ktx, lifecycle-runtime-compose and lifecycle-viewmodel-compose 2.10.0
 - Room 2.8.5 (runtime, ktx, compiler via KSP)
 - minSdk = compileSdk = targetSdk = 36 (Android 16). Newer Compose (1.12+) and Lifecycle (2.11+) need compileSdk 37, so they are held back.
 - Versions live in `gradle/libs.versions.toml`. Single module `app`, package `com.example.pkco`.
@@ -28,6 +28,12 @@ Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic 
 - Notes are soft-deleted (`deletedAt` set); read queries filter `deletedAt IS NULL`. Unused tags are kept.
 - Schema JSON is exported to `app/schemas/` (KSP arg `room.schemaLocation`) and committed. Any schema change needs a version bump and a migration.
 - Tests: `app/src/androidTest/.../data/RoomNoteRepositoryTest.kt`, in-memory database, run with `connectedDebugAndroidTest`.
+
+## UI (Sprint 3)
+- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `CreateNoteScreen`; theme in `ui/theme/`. `MainActivity` only sets `PkcoTheme { NotesApp() }`.
+- `NotesViewModel.Factory` (a `ViewModelProvider.Factory`) builds `RoomNoteRepository(PkcoDatabase.getInstance(application))`. No DI library.
+- No navigation library: the `Screen` enum (`List`, `Create`) is a StateFlow in the ViewModel; `NotesApp` switches on it. Back on the create screen returns to the list (BackHandler) and discards the draft, which lives in `rememberSaveable` state.
+- Flows are collected with `collectAsStateWithLifecycle`. Every visible text is a string resource; no Material icons library (the "+" is text).
 
 ## Relevance rule
 Each query word is matched case-insensitively with partial matches; points add up: title match 3, tag or category name match 2, body match 1. Sort by score, then by most recently edited (`updatedAt`). One Room query, no extra library.
