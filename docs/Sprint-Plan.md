@@ -91,6 +91,14 @@ Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. T
 
 After each sprint, fill one row, and use the deviations column for the Instruction3 observations listed below the table; copy this table into `SPRINT_LOG.md` in the repo.
 
+**Time format (from Sprint 6 on, October 14, 2026).** Every time is `HH:MM:SS` (24-hour, two digits each) on the Eastern Time clock of Felipe's computer. The time cell has the same lines in every row:
+
+```text
+<date><br>Start: HH:MM:SS<br>Code finished: HH:MM:SS<br>Automated tests: <duration><br>Manual test (expected): ~N min<br>End: HH:MM:SS
+```
+
+Claude Code reads the computer clock itself for **Start** (its first command) and **Code finished** (just before the commit) and copies the duration Gradle prints for the automated tests. Claude gives the expected manual-test duration in the prompt. Felipe adds **End** when the manual test is done, taken from the computer clock. For Sprints 1 to 5 the seconds were not recorded; they are shown as `:00` where the clock was not read.
+
 | Sprint | Start and end time | Result against "done when" | Deviations and unexpected AI behavior | Human intervention needed |
 | --- | --- | --- | --- | --- |
 | 1 |  |  |  |  |
