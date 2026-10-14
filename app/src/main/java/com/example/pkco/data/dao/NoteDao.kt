@@ -4,11 +4,15 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.pkco.data.entity.Category
 import com.example.pkco.data.entity.Note
 import com.example.pkco.data.entity.NoteTag
 import com.example.pkco.data.entity.NoteWithDetails
+import com.example.pkco.data.entity.Tag
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,6 +24,11 @@ interface NoteDao {
     @Transaction
     @Query("SELECT * FROM notes WHERE id = :id AND deletedAt IS NULL")
     fun observeActive(id: String): Flow<NoteWithDetails?>
+
+    /** Runs a query built by `SearchQueryBuilder`; it emits again when any of the four tables changes. */
+    @Transaction
+    @RawQuery(observedEntities = [Note::class, Category::class, Tag::class, NoteTag::class])
+    fun search(query: SupportSQLiteQuery): Flow<List<NoteWithDetails>>
 
     /** Returns the row even when it is soft-deleted. */
     @Query("SELECT * FROM notes WHERE id = :id")

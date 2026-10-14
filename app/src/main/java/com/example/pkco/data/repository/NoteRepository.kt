@@ -10,6 +10,15 @@ interface NoteRepository {
     /** Notes that are not deleted, most recently edited first. */
     fun observeNotes(): Flow<List<NoteWithDetails>>
 
+    /**
+     * Notes that are not deleted and match [query] and the filters. Each word of [query] (split on whitespace,
+     * at most 8) scores, as a partial match ignoring case: title 3, any tag or the category name 2, body 1.
+     * Notes scoring 0 are left out; the rest come by score, then most recently edited. A blank [query] returns
+     * every note in the [observeNotes] order. [categoryId] and [tagId], when not null, keep only notes with that
+     * category or that tag.
+     */
+    fun searchNotes(query: String, categoryId: String?, tagId: String?): Flow<List<NoteWithDetails>>
+
     /** One note that is not deleted, or null. */
     fun observeNote(id: String): Flow<NoteWithDetails?>
 

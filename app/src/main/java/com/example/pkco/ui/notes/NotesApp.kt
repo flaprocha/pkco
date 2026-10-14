@@ -14,9 +14,24 @@ import com.example.pkco.R
 fun NotesApp(viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Factory)) {
     when (val screen = viewModel.screen.collectAsStateWithLifecycle().value) {
         Screen.List -> {
-            val notes by viewModel.notes.collectAsStateWithLifecycle()
+            val allNotes by viewModel.notes.collectAsStateWithLifecycle()
+            val results by viewModel.searchResults.collectAsStateWithLifecycle()
+            val categories by viewModel.categories.collectAsStateWithLifecycle()
+            val tags by viewModel.filterTags.collectAsStateWithLifecycle()
+            val categoryFilter by viewModel.categoryFilter.collectAsStateWithLifecycle()
+            val tagFilter by viewModel.tagFilter.collectAsStateWithLifecycle()
             NoteListScreen(
-                notes = notes,
+                hasNotes = allNotes?.isNotEmpty(),
+                notes = results,
+                searchText = viewModel.searchText,
+                onSearchTextChange = viewModel::updateSearchText,
+                categories = categories.orEmpty(),
+                selectedCategoryId = categoryFilter,
+                onSelectCategory = viewModel::selectCategoryFilter,
+                tags = tags.orEmpty(),
+                selectedTagId = tagFilter,
+                onSelectTag = viewModel::selectTagFilter,
+                onClearSearch = viewModel::clearSearch,
                 onAddNote = viewModel::openCreate,
                 onOpenNote = viewModel::openNote,
                 onOpenCategories = viewModel::openCategories

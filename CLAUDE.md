@@ -42,6 +42,11 @@ Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic 
 ## Relevance rule
 Each query word is matched case-insensitively with partial matches; points add up: title match 3, tag or category name match 2, body match 1. Sort by score, then by most recently edited (`updatedAt`). One Room query, no extra library.
 
+## Search (Sprint 6)
+- `data/search/SearchQueryBuilder.kt` (pure Kotlin) builds the SQL and bind arguments; `NoteDao.search` (`@RawQuery`, `@Transaction`, observes all four tables) runs it; `NoteRepository.searchNotes(query, categoryId, tagId)` exposes it. No schema change.
+- Rule: up to 8 whitespace-separated words, each scoring title 3 + (any tag or category name) 2 + body 1, partial LIKE match ignoring case (ASCII only), `%` `_` `\` escaped; score 0 hidden; order score, updatedAt, createdAt. Blank query = all notes in list order. User text is only ever a bind argument.
+- Filters: optional category and tag (AND with each other and the words). `NotesViewModel` keeps search text, category filter and tag filter across screens; the tag menu lists only tags used by non-deleted notes. A filter whose category was deleted or whose tag is no longer used resets to "All" automatically; "Clear" resets text and both filters.
+
 ## Build, test, install (PowerShell, repo root)
 ```powershell
 $env:JAVA_HOME = '<Android Studio folder>\jbr'   # session only
@@ -52,7 +57,7 @@ $env:ANDROID_HOME = '<Android SDK folder>'        # session only
 & "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n com.example.pkco/.MainActivity
 ```
 `connectedDebugAndroidTest` uninstalls the app and wipes its data, so run `installDebug` afterwards.
-There are no JVM unit tests (`testDebugUnitTest`) at the moment: Room tests need a device, and Robolectric is not used.
+JVM unit tests (`.\gradlew.bat testDebugUnitTest`, under `app/src/test/`) cover only pure Kotlin code such as the search query builder; Room tests need a device (Robolectric is not used).
 If drive C: is low on space, also set `GRADLE_USER_HOME`, `TMP` and `TEMP` to folders on another drive for the session (done in Sprint 1). A full C: also stops Windows' swap file from growing, and the Gradle JVM then crashes with "insufficient memory"; free space on C: and close other programs, or pass `-Dorg.gradle.jvmargs=-Xmx1536m` for the session.
 Test phone: Motorola moto g stylus 2025, Android 16.
 

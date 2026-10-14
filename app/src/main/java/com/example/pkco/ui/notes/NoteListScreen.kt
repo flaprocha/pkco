@@ -26,20 +26,36 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pkco.R
+import com.example.pkco.data.entity.Category
 import com.example.pkco.data.entity.NoteWithDetails
+import com.example.pkco.data.entity.Tag
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** The notes list. [notes] is null while the first load is running, and nothing is drawn then. */
+/**
+ * The notes list with search and filters. [hasNotes] says whether any note exists at all; [notes] are the search
+ * results. Either is null while the first load is running, and no list or empty text is drawn then.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteListScreen(
+    hasNotes: Boolean?,
     notes: List<NoteWithDetails>?,
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    categories: List<Category>,
+    selectedCategoryId: String?,
+    onSelectCategory: (categoryId: String?) -> Unit,
+    tags: List<Tag>,
+    selectedTagId: String?,
+    onSelectTag: (tagId: String?) -> Unit,
+    onClearSearch: () -> Unit,
     onAddNote: () -> Unit,
     onOpenNote: (id: String) -> Unit,
     onOpenCategories: () -> Unit,
@@ -65,31 +81,61 @@ fun NoteListScreen(
             }
         }
     ) { innerPadding ->
-        when {
-            notes == null -> Unit
-            notes.isEmpty() -> Box(
+        Column(modifier = Modifier.fillMaxSize().padding(top = innerPadding.calculateTopPadding())) {
+            NoteSearchField(
+                text = searchText,
+                onTextChange = onSearchTextChange,
+                showClear = searchText.isNotEmpty() || selectedCategoryId != null || selectedTagId != null,
+                onClear = onClearSearch,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(R.string.empty_notes))
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+            )
+            if (categories.isNotEmpty() || tags.isNotEmpty()) {
+                ListFilters(
+                    categories = categories,
+                    selectedCategoryId = selectedCategoryId,
+                    onSelectCategory = onSelectCategory,
+                    tags = tags,
+                    selectedTagId = selectedTagId,
+                    onSelectTag = onSelectTag,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                )
             }
-            else -> {
-                val formatter = rememberEditedAtFormatter()
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = innerPadding.calculateTopPadding() + 8.dp,
-                        // Room for the floating button over the last card.
-                        bottom = innerPadding.calculateBottomPadding() + 88.dp,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            val emptyText = when {
+                hasNotes == false -> R.string.empty_notes
+                hasNotes == true && notes?.isEmpty() == true -> R.string.nothing_found
+                else -> null
+            }
+            when {
+                hasNotes == null || notes == null -> Unit
+                emptyText != null -> Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    items(notes, key = { it.note.id }) { item ->
-                        NoteCard(details = item, formatter = formatter, onClick = { onOpenNote(item.note.id) })
+                    Text(stringResource(emptyText), textAlign = TextAlign.Center)
+                }
+                else -> {
+                    val formatter = rememberEditedAtFormatter()
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            // Room for the floating button over the last card.
+                            bottom = innerPadding.calculateBottomPadding() + 88.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(notes, key = { it.note.id }) { item ->
+                            NoteCard(details = item, formatter = formatter, onClick = { onOpenNote(item.note.id) })
+                        }
                     }
                 }
             }

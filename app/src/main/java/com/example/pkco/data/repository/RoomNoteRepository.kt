@@ -1,12 +1,14 @@
 package com.example.pkco.data.repository
 
 import androidx.room.withTransaction
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.pkco.data.PkcoDatabase
 import com.example.pkco.data.entity.Category
 import com.example.pkco.data.entity.Note
 import com.example.pkco.data.entity.NoteTag
 import com.example.pkco.data.entity.NoteWithDetails
 import com.example.pkco.data.entity.Tag
+import com.example.pkco.data.search.SearchQueryBuilder
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -20,6 +22,11 @@ class RoomNoteRepository(
     private val tagDao = db.tagDao()
 
     override fun observeNotes(): Flow<List<NoteWithDetails>> = noteDao.observeActive()
+
+    override fun searchNotes(query: String, categoryId: String?, tagId: String?): Flow<List<NoteWithDetails>> {
+        val search = SearchQueryBuilder.build(query, categoryId, tagId)
+        return noteDao.search(SimpleSQLiteQuery(search.sql, search.args.toTypedArray()))
+    }
 
     override fun observeNote(id: String): Flow<NoteWithDetails?> = noteDao.observeActive(id)
 

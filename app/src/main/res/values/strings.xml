@@ -36,4 +36,10 @@
     <string name="tag_label">#%1$s</string>
     <string name="note_category">Category: %1$s</string>
     <string name="note_tags">Tags: %1$s</string>
+    <string name="search_hint">Search notes</string>
+    <string name="clear">Clear</string>
+    <string name="filter_all">All</string>
+    <string name="filter_category">Category: %1$s</string>
+    <string name="filter_tag">Tag: %1$s</string>
+    <string name="nothing_found">Nothing found. Try other words or clear the filters.</string>
 </resources>

@@ -1,5 +1,9 @@
 package com.example.pkco.ui.notes
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -9,6 +13,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.pkco.data.PkcoDatabase
 import com.example.pkco.data.entity.Category
 import com.example.pkco.data.entity.NoteWithDetails
+import com.example.pkco.data.entity.Tag
 import com.example.pkco.data.repository.NoteRepository
 import com.example.pkco.data.repository.RoomNoteRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -35,6 +41,9 @@ sealed interface Screen {
 }
 
 /** The note id shown by a View or Edit screen, or null for the other screens. */
+/** What the list is searched and filtered by; null ids mean "All". */
+private data class SearchParams(val text: String, val categoryId: String?, val tagId: String?)
+
 private val Screen.noteId: String?
     get() = when (this) {
         is Screen.View -> noteId
@@ -50,6 +59,49 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
 
     /** All categories by name; null until the first load. */
     val categories: StateFlow<List<Category>?> = repository.observeCategories()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** The list's search text. Compose state, so the search field never lags behind typing. */
+    var searchText by mutableStateOf("")
+        private set
+
+    private val _categoryFilter = MutableStateFlow<String?>(null)
+    /** The category id the list is filtered by, or null for all. */
+    val categoryFilter: StateFlow<String?> = _categoryFilter.asStateFlow()
+
+    private val _tagFilter = MutableStateFlow<String?>(null)
+    /** The tag id the list is filtered by, or null for all. */
+    val tagFilter: StateFlow<String?> = _tagFilter.asStateFlow()
+
+    /** Tags used by at least one note that is not deleted, by name ignoring case; null until the first load. */
+    val filterTags: StateFlow<List<Tag>?> = notes
+        .map { list ->
+            list?.flatMap { it.tags }?.distinctBy { it.id }?.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * The notes shown on the list: [searchText] in relevance order, within the selected filters; null until the
+     * first load. A filter whose category was deleted, or whose tag no longer has notes, is reset to "All".
+     */
+    val searchResults: StateFlow<List<NoteWithDetails>?> = combine(
+        snapshotFlow { searchText },
+        _categoryFilter,
+        _tagFilter,
+        categories,
+        filterTags,
+    ) { text, categoryId, tagId, allCategories, usedTags ->
+        // While a list is still loading (null), the selection is kept.
+        val validCategoryId = categoryId?.takeIf { id -> allCategories == null || allCategories.any { it.id == id } }
+        val validTagId = tagId?.takeIf { id -> usedTags == null || usedTags.any { it.id == id } }
+        SearchParams(text, validCategoryId, validTagId)
+    }
+        .onEach { params ->
+            if (params.categoryId != _categoryFilter.value) _categoryFilter.value = params.categoryId
+            if (params.tagId != _tagFilter.value) _tagFilter.value = params.tagId
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { repository.searchNotes(it.text, it.categoryId, it.tagId) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _screen = MutableStateFlow<Screen>(Screen.List)
@@ -73,6 +125,25 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
 
     private val _saving = MutableStateFlow(false)
     val saving: StateFlow<Boolean> = _saving.asStateFlow()
+
+    fun updateSearchText(text: String) {
+        searchText = text
+    }
+
+    fun selectCategoryFilter(categoryId: String?) {
+        _categoryFilter.value = categoryId
+    }
+
+    fun selectTagFilter(tagId: String?) {
+        _tagFilter.value = tagId
+    }
+
+    /** Empties the search text and sets both filters back to "All". */
+    fun clearSearch() {
+        searchText = ""
+        _categoryFilter.value = null
+        _tagFilter.value = null
+    }
 
     fun openCreate() {
         _screen.value = Screen.Create
