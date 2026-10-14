@@ -62,7 +62,7 @@ Claude's own behavior before any code is already worth logging: five small addit
 | Claude flagged that authentication in Phase 3 conflicts with Phase 2 cloud sync, and that Android 16 limits supported phones | Useful suggestion | Authentication moved to Phase 2; Android 16 kept because the test phone runs it |
 | Attaching the GitHub repo failed twice (account not linked, then a not-found error) before a lookup found the exact name | Requires intervention | Felipe had to link GitHub; repo is now attached |
 
-## Observations during Sprints 1 and 2
+## Observations during Sprints 1 to 4
 
 Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. The sprint-by-sprint record itself is in `SPRINT_LOG.md`.
 
@@ -80,6 +80,12 @@ Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. T
 | Claude Code's Sprint 2 build crashed (Gradle out of native memory) because C: was full and the Windows swap file could not grow; Claude Code stopped and reported | Requires intervention; useful surprise | Felipe freed space and closed other programs; Claude had fixed the Gradle cache location but missed the swap file |
 | Claude's prompt asked for "unit tests"; Room needs a device, so the tests are instrumented tests | Deviates from the plan's wording | Flagged beforehand; no new library added |
 | Claude Code added behavior the prompt did not specify (category names case-insensitive, `getById`, errors on updating a missing note, and similar) | Adds detail not in Milestone 2.1 | Reasonable and reported; listed in `SPRINT_LOG.md` |
+| Sprint 3: Claude Code opened the create screen with an adb tap and tested Back, which the prompt did not ask for | Useful surprise | Safe (no note was saved) and it narrowed what Felipe had to test by hand |
+| Sprint 3: a failed save is not caught, so the app would crash without a message | Missing behavior | Accepted for now; error states are planned for Sprint 7 |
+| Sprint 4: `connectedDebugAndroidTest` uninstalls the app and erases its data (Android's default), wiping the notes on the phone | Unexpected tooling behavior | Claude Code reinstalled and reported it; Claude had not warned about it in the prompt; the Sprint 5 prompt orders the tasks (tests first, then install) and adds a line to `CLAUDE.md` |
+| Sprint 4: the start-time placeholder at the end of Claude's prompt was not replaced, so the log got a wrong date and "start time not given" | Requires intervention (prompt design) | Felipe corrected the row by hand; later prompts leave start and end times to Felipe instead of passing them through the prompt |
+| Sprint 4: Claude Code renamed `CreateNoteScreen.kt` to `NoteFormScreen.kt` and added one repository test (edit keeps category and tags) | Adds detail not requested | Reasonable and reported; the test was allowed as optional |
+| Sprint 4: Claude Code could not open its screenshot (outside its working folders) and used an adb UI dump instead | Tool limitation | None; Felipe's manual test covered the visual check |
 
 ## Sprint log template
 
