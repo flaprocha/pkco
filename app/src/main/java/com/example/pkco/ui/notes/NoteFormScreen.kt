@@ -26,19 +26,29 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.example.pkco.R
 
-/** Draft of a new note. The draft lives only while this screen is shown; leaving it discards the draft. */
+/**
+ * The form to create or edit a note, titled [heading]. The fields start with [initialTitle] and [initialBody].
+ * The draft lives only while this screen is shown; leaving it discards the draft.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateNoteScreen(saving: Boolean, onCancel: () -> Unit, onSave: (title: String, body: String) -> Unit) {
-    var title by rememberSaveable { mutableStateOf("") }
-    var body by rememberSaveable { mutableStateOf("") }
+fun NoteFormScreen(
+    heading: String,
+    saving: Boolean,
+    onCancel: () -> Unit,
+    onSave: (title: String, body: String) -> Unit,
+    initialTitle: String = "",
+    initialBody: String = "",
+) {
+    var title by rememberSaveable { mutableStateOf(initialTitle) }
+    var body by rememberSaveable { mutableStateOf(initialBody) }
     val canSave = !saving && (title.isNotBlank() || body.isNotBlank())
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.new_note)) },
+                title = { Text(heading) },
                 navigationIcon = {
                     TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
                 },

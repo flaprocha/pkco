@@ -38,7 +38,7 @@ import java.time.format.FormatStyle
 /** The notes list. [notes] is null while the first load is running, and nothing is drawn then. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit) {
+fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit, onOpenNote: (id: String) -> Unit) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
@@ -64,13 +64,7 @@ fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit) {
                 Text(stringResource(R.string.empty_notes))
             }
             else -> {
-                // Phone locale and time zone; rebuilt when the locale changes.
-                val locale = LocalConfiguration.current.locales[0]
-                val formatter = remember(locale) {
-                    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-                        .withLocale(locale)
-                        .withZone(ZoneId.systemDefault())
-                }
+                val formatter = rememberEditedAtFormatter()
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
@@ -83,7 +77,7 @@ fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(notes, key = { it.note.id }) { item ->
-                        NoteCard(note = item.note, formatter = formatter)
+                        NoteCard(note = item.note, formatter = formatter, onClick = { onOpenNote(item.note.id) })
                     }
                 }
             }
@@ -91,10 +85,10 @@ fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit) {
     }
 }
 
-/** Not clickable yet; editing arrives in Sprint 4. Links in the body stay plain text. */
+/** A tap opens the note. Links in the body stay plain text. */
 @Composable
-private fun NoteCard(note: Note, formatter: DateTimeFormatter) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun NoteCard(note: Note, formatter: DateTimeFormatter, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -127,5 +121,16 @@ private fun NoteCard(note: Note, formatter: DateTimeFormatter) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+/** Formats "Edited" times on the list and View screens: phone locale and time zone, rebuilt when the locale changes. */
+@Composable
+internal fun rememberEditedAtFormatter(): DateTimeFormatter {
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(locale) {
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+            .withLocale(locale)
+            .withZone(ZoneId.systemDefault())
     }
 }

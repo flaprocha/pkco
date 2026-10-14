@@ -86,6 +86,22 @@ class RoomNoteRepositoryTest {
     }
 
     @Test
+    fun updateNote_withSameCategoryAndTags_keepsThem() = runBlocking {
+        val work = repository.createCategory("Work")
+        val id = repository.createNote("Old", "body", work, listOf("a", "b"))
+        val before = repository.observeNote(id).first()!!
+
+        now = 2_000L
+        repository.updateNote(id, "New", "body", before.note.categoryId, before.tags.map { it.name })
+
+        val after = repository.observeNote(id).first()!!
+        assertEquals("New", after.note.title)
+        assertEquals(work, after.note.categoryId)
+        assertEquals(before.tags.toSet(), after.tags.toSet())
+        assertEquals(2, repository.observeTags().first().size)
+    }
+
+    @Test
     fun deleteNote_isSoft_hidesNoteButKeepsRow() = runBlocking {
         val id = repository.createNote("Gone", "", null, listOf("x"))
 

@@ -29,10 +29,12 @@ Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic 
 - Schema JSON is exported to `app/schemas/` (KSP arg `room.schemaLocation`) and committed. Any schema change needs a version bump and a migration.
 - Tests: `app/src/androidTest/.../data/RoomNoteRepositoryTest.kt`, in-memory database, run with `connectedDebugAndroidTest`.
 
-## UI (Sprint 3)
-- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `CreateNoteScreen`; theme in `ui/theme/`. `MainActivity` only sets `PkcoTheme { NotesApp() }`.
+## UI (Sprints 3 and 4)
+- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `NoteViewScreen`, `NoteFormScreen` (shared by create and edit); theme in `ui/theme/`. `MainActivity` only sets `PkcoTheme { NotesApp() }`.
 - `NotesViewModel.Factory` (a `ViewModelProvider.Factory`) builds `RoomNoteRepository(PkcoDatabase.getInstance(application))`. No DI library.
-- No navigation library: the `Screen` enum (`List`, `Create`) is a StateFlow in the ViewModel; `NotesApp` switches on it. Back on the create screen returns to the list (BackHandler) and discards the draft, which lives in `rememberSaveable` state.
+- No navigation library: the sealed `Screen` (`List`, `Create`, `View(noteId)`, `Edit(noteId)`) is a StateFlow in the ViewModel; `NotesApp` switches on it. `selectedNote` observes the View/Edit note through `observeNote` and returns to the list when it is gone.
+- Back (BackHandler): Edit -> View, View -> List, Create -> List. Leaving a form discards the draft, which lives in `rememberSaveable` state. Delete asks in an AlertDialog, then soft-deletes.
+- An edit with unchanged trimmed text writes nothing. `updateNote` replaces category and tags, so an edit passes the note's current `categoryId` and tag names.
 - Flows are collected with `collectAsStateWithLifecycle`. Every visible text is a string resource; no Material icons library (the "+" is text).
 
 ## Relevance rule
