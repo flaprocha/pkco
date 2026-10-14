@@ -29,12 +29,14 @@ Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic 
 - Schema JSON is exported to `app/schemas/` (KSP arg `room.schemaLocation`) and committed. Any schema change needs a version bump and a migration.
 - Tests: `app/src/androidTest/.../data/RoomNoteRepositoryTest.kt`, in-memory database, run with `connectedDebugAndroidTest`.
 
-## UI (Sprints 3 and 4)
-- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `NoteViewScreen`, `NoteFormScreen` (shared by create and edit); theme in `ui/theme/`. `MainActivity` only sets `PkcoTheme { NotesApp() }`.
+## UI (Sprints 3 to 5)
+- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `NoteViewScreen`, `NoteFormScreen` (shared by create and edit), `CategoryDropdown`, `TagEditor`, `CategoryNameDialog`, `CategoriesScreen`, `NoteLabels`; theme in `ui/theme/`. `MainActivity` only sets `PkcoTheme { NotesApp() }`.
 - `NotesViewModel.Factory` (a `ViewModelProvider.Factory`) builds `RoomNoteRepository(PkcoDatabase.getInstance(application))`. No DI library.
-- No navigation library: the sealed `Screen` (`List`, `Create`, `View(noteId)`, `Edit(noteId)`) is a StateFlow in the ViewModel; `NotesApp` switches on it. `selectedNote` observes the View/Edit note through `observeNote` and returns to the list when it is gone.
-- Back (BackHandler): Edit -> View, View -> List, Create -> List. Leaving a form discards the draft, which lives in `rememberSaveable` state. Delete asks in an AlertDialog, then soft-deletes.
-- An edit with unchanged trimmed text writes nothing. `updateNote` replaces category and tags, so an edit passes the note's current `categoryId` and tag names.
+- No navigation library: the sealed `Screen` (`List`, `Create`, `View(noteId)`, `Edit(noteId)`, `Categories`) is a StateFlow in the ViewModel; `NotesApp` switches on it. `selectedNote` observes the View/Edit note through `observeNote` and returns to the list when it is gone.
+- Back (BackHandler): Edit -> View, View -> List, Create -> List, Categories -> List. Leaving a form discards the draft, which lives in `rememberSaveable` state. Delete asks in an AlertDialog, then soft-deletes.
+- Form: title, category dropdown (No category, each category, "New category…" opens a dialog that creates and selects it), tag field with Add (or Done) and removable chips (trimmed, no blanks, no duplicates ignoring case), body. An edit that changes neither trimmed text, category nor tag set (ignoring case) writes nothing; otherwise `updateNote` gets the chosen category and tags (it replaces both).
+- Categories screen (top-bar "Categories" on the list): add field, rows with Rename (dialog) and Delete (confirmation; notes become uncategorized). Rejected names (repository `IllegalArgumentException`) show a string-resource message.
+- Cards show one line "Category  #tag #tag"; View shows "Category: …" and "Tags: …" under the title. Both update live from the repository Flows. Unused tags are never shown.
 - Flows are collected with `collectAsStateWithLifecycle`. Every visible text is a string resource; no Material icons library (the "+" is text).
 
 ## Relevance rule
@@ -49,12 +51,16 @@ $env:ANDROID_HOME = '<Android SDK folder>'        # session only
 .\gradlew.bat installDebug
 & "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n com.example.pkco/.MainActivity
 ```
+`connectedDebugAndroidTest` uninstalls the app and wipes its data, so run `installDebug` afterwards.
 There are no JVM unit tests (`testDebugUnitTest`) at the moment: Room tests need a device, and Robolectric is not used.
 If drive C: is low on space, also set `GRADLE_USER_HOME`, `TMP` and `TEMP` to folders on another drive for the session (done in Sprint 1). A full C: also stops Windows' swap file from growing, and the Gradle JVM then crashes with "insufficient memory"; free space on C: and close other programs, or pass `-Dorg.gradle.jvmargs=-Xmx1536m` for the session.
 Test phone: Motorola moto g stylus 2025, Android 16.
 
 ## JDK note
 The machine's system JDK is 25 and is not relied on. Run Gradle with Android Studio's bundled `jbr` (currently JDK 25.0.3, which this AGP/Gradle accepts), set per session or in the user-level `~/.gradle/gradle.properties`, never in the repo. `local.properties` holds `sdk.dir` and is git-ignored.
+
+## Sprint log times
+For every sprint: (a) your very first command is `Get-Date -Format 'HH:mm:ss'`; record it as Start. (b) Just before the commit run it again and record it as Code finished. (c) Copy the duration Gradle prints for connectedDebugAndroidTest into 'Automated tests' (for example 'BUILD SUCCESSFUL in 1m 12s'). (d) Copy 'Manual test (expected)' from the sprint prompt. (e) End is added by Felipe as HH:MM:SS; write 'End: to be added by Felipe (HH:MM:SS from the computer clock)'. Time cell format, one line each joined with <br>: <date><br>Start: HH:MM:SS<br>Code finished: HH:MM:SS<br>Automated tests: <duration><br>Manual test (expected): ~N min<br>End: ... Never invent a time; every time is HH:MM:SS.
 
 ## Working rules
 - Stay inside the current sprint's scope; do not build later-sprint or Phase 2/3 features.

@@ -15,6 +15,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -28,7 +29,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pkco.R
-import com.example.pkco.data.entity.Note
 import com.example.pkco.data.entity.NoteWithDetails
 import java.time.Instant
 import java.time.ZoneId
@@ -38,10 +38,22 @@ import java.time.format.FormatStyle
 /** The notes list. [notes] is null while the first load is running, and nothing is drawn then. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit, onOpenNote: (id: String) -> Unit) {
+fun NoteListScreen(
+    notes: List<NoteWithDetails>?,
+    onAddNote: () -> Unit,
+    onOpenNote: (id: String) -> Unit,
+    onOpenCategories: () -> Unit,
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                actions = {
+                    TextButton(onClick = onOpenCategories) { Text(stringResource(R.string.categories)) }
+                }
+            )
+        },
         floatingActionButton = {
             val addLabel = stringResource(R.string.add_note)
             FloatingActionButton(
@@ -77,7 +89,7 @@ fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit, onOpenN
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(notes, key = { it.note.id }) { item ->
-                        NoteCard(note = item.note, formatter = formatter, onClick = { onOpenNote(item.note.id) })
+                        NoteCard(details = item, formatter = formatter, onClick = { onOpenNote(item.note.id) })
                     }
                 }
             }
@@ -87,7 +99,8 @@ fun NoteListScreen(notes: List<NoteWithDetails>?, onAddNote: () -> Unit, onOpenN
 
 /** A tap opens the note. Links in the body stay plain text. */
 @Composable
-private fun NoteCard(note: Note, formatter: DateTimeFormatter, onClick: () -> Unit) {
+private fun NoteCard(details: NoteWithDetails, formatter: DateTimeFormatter, onClick: () -> Unit) {
+    val note = details.note
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -112,6 +125,17 @@ private fun NoteCard(note: Note, formatter: DateTimeFormatter, onClick: () -> Un
                     note.body,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            // One line: the category name, then each tag with a leading #; left out when there are neither.
+            val labels = listOfNotNull(details.category?.name, tagsText(details.tags).ifEmpty { null })
+            if (labels.isNotEmpty()) {
+                Text(
+                    labels.joinToString("  "),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }

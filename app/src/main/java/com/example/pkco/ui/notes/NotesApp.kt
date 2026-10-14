@@ -9,21 +9,29 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pkco.R
 
-/** Shows the list, create, view or edit screen, as chosen by [NotesViewModel.screen]. */
+/** Shows the list, create, view, edit or categories screen, as chosen by [NotesViewModel.screen]. */
 @Composable
 fun NotesApp(viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Factory)) {
     when (val screen = viewModel.screen.collectAsStateWithLifecycle().value) {
         Screen.List -> {
             val notes by viewModel.notes.collectAsStateWithLifecycle()
-            NoteListScreen(notes = notes, onAddNote = viewModel::openCreate, onOpenNote = viewModel::openNote)
+            NoteListScreen(
+                notes = notes,
+                onAddNote = viewModel::openCreate,
+                onOpenNote = viewModel::openNote,
+                onOpenCategories = viewModel::openCategories
+            )
         }
         Screen.Create -> {
             val saving by viewModel.saving.collectAsStateWithLifecycle()
+            val categories by viewModel.categories.collectAsStateWithLifecycle()
             // Back discards the draft, like Cancel.
             BackHandler(onBack = viewModel::showList)
             NoteFormScreen(
                 heading = stringResource(R.string.new_note),
                 saving = saving,
+                categories = categories.orEmpty(),
+                onCreateCategory = viewModel::createCategory,
                 onCancel = viewModel::showList,
                 onSave = viewModel::saveNew
             )
@@ -31,34 +39,53 @@ fun NotesApp(viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Fact
         is Screen.View -> {
             BackHandler(onBack = viewModel::showList)
             // Drawn only once the selected note has loaded; a stale note with another id is skipped.
-            val note = viewModel.selectedNote.collectAsStateWithLifecycle().value?.note
-            if (note != null && note.id == screen.noteId) {
+            val details = viewModel.selectedNote.collectAsStateWithLifecycle().value
+            if (details != null && details.note.id == screen.noteId) {
                 NoteViewScreen(
-                    note = note,
+                    details = details,
                     onBack = viewModel::showList,
-                    onEdit = { viewModel.openEdit(note.id) },
-                    onDelete = { viewModel.delete(note.id) }
+                    onEdit = { viewModel.openEdit(screen.noteId) },
+                    onDelete = { viewModel.delete(screen.noteId) }
                 )
             }
         }
         is Screen.Edit -> {
             val saving by viewModel.saving.collectAsStateWithLifecycle()
+            val categories by viewModel.categories.collectAsStateWithLifecycle()
             val backToView = { viewModel.openNote(screen.noteId) }
             // Back discards the changes, like Cancel.
             BackHandler(onBack = backToView)
-            val note = viewModel.selectedNote.collectAsStateWithLifecycle().value?.note
-            if (note != null && note.id == screen.noteId) {
+            val details = viewModel.selectedNote.collectAsStateWithLifecycle().value
+            if (details != null && details.note.id == screen.noteId) {
+                val note = details.note
                 key(note.id) {
                     NoteFormScreen(
                         heading = stringResource(R.string.edit_note),
                         saving = saving,
+                        categories = categories.orEmpty(),
+                        onCreateCategory = viewModel::createCategory,
                         onCancel = backToView,
-                        onSave = { title, body -> viewModel.saveEdit(note.id, title, body) },
+                        onSave = { title, body, categoryId, tagNames ->
+                            viewModel.saveEdit(note.id, title, body, categoryId, tagNames)
+                        },
                         initialTitle = note.title,
-                        initialBody = note.body
+                        initialBody = note.body,
+                        initialCategoryId = note.categoryId,
+                        initialTags = sortedTagNames(details.tags)
                     )
                 }
             }
+        }
+        Screen.Categories -> {
+            val categories by viewModel.categories.collectAsStateWithLifecycle()
+            BackHandler(onBack = viewModel::showList)
+            CategoriesScreen(
+                categories = categories,
+                onBack = viewModel::showList,
+                onCreate = { name -> viewModel.createCategory(name) },
+                onRename = viewModel::renameCategory,
+                onDelete = viewModel::deleteCategory
+            )
         }
     }
 }

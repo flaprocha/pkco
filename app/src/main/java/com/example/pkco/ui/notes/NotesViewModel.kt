@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.pkco.data.PkcoDatabase
+import com.example.pkco.data.entity.Category
 import com.example.pkco.data.entity.NoteWithDetails
 import com.example.pkco.data.repository.NoteRepository
 import com.example.pkco.data.repository.RoomNoteRepository
@@ -30,6 +31,7 @@ sealed interface Screen {
     data object Create : Screen
     data class View(val noteId: String) : Screen
     data class Edit(val noteId: String) : Screen
+    data object Categories : Screen
 }
 
 /** The note id shown by a View or Edit screen, or null for the other screens. */
@@ -37,13 +39,17 @@ private val Screen.noteId: String?
     get() = when (this) {
         is Screen.View -> noteId
         is Screen.Edit -> noteId
-        Screen.List, Screen.Create -> null
+        Screen.List, Screen.Create, Screen.Categories -> null
     }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
     /** Notes from the repository, most recently edited first; null until the first load. */
     val notes: StateFlow<List<NoteWithDetails>?> = repository.observeNotes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** All categories by name; null until the first load. */
+    val categories: StateFlow<List<Category>?> = repository.observeCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _screen = MutableStateFlow<Screen>(Screen.List)
@@ -84,15 +90,19 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
         _screen.value = Screen.Edit(id)
     }
 
-    /** Saves a new note with trimmed text, no category and no tags, then returns to the list. */
-    fun saveNew(title: String, body: String) {
+    fun openCategories() {
+        _screen.value = Screen.Categories
+    }
+
+    /** Saves a new note with trimmed text, the chosen category and tags, then returns to the list. */
+    fun saveNew(title: String, body: String, categoryId: String?, tagNames: List<String>) {
         val trimmedTitle = title.trim()
         val trimmedBody = body.trim()
         if (_saving.value || (trimmedTitle.isEmpty() && trimmedBody.isEmpty())) return
         _saving.value = true
         viewModelScope.launch {
             try {
-                repository.createNote(trimmedTitle, trimmedBody, categoryId = null, tagNames = emptyList())
+                repository.createNote(trimmedTitle, trimmedBody, existingCategoryId(categoryId), tagNames)
                 _screen.value = Screen.List
             } finally {
                 _saving.value = false
@@ -101,10 +111,10 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
     }
 
     /**
-     * Saves trimmed text to note [id], then returns to its View screen. Nothing is written when the text is
-     * unchanged. The note keeps its current category and tags, since updateNote replaces them.
+     * Saves trimmed text, the chosen category and tags to note [id], then returns to its View screen.
+     * Nothing is written when text, category and tag set (ignoring case) are all unchanged.
      */
-    fun saveEdit(id: String, title: String, body: String) {
+    fun saveEdit(id: String, title: String, body: String, categoryId: String?, tagNames: List<String>) {
         val trimmedTitle = title.trim()
         val trimmedBody = body.trim()
         if (_saving.value || (trimmedTitle.isEmpty() && trimmedBody.isEmpty())) return
@@ -116,20 +126,38 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
                     _screen.value = Screen.List
                     return@launch
                 }
-                if (trimmedTitle != current.note.title || trimmedBody != current.note.body) {
-                    repository.updateNote(
-                        id,
-                        trimmedTitle,
-                        trimmedBody,
-                        categoryId = current.note.categoryId,
-                        tagNames = current.tags.map { it.name },
-                    )
+                val newCategoryId = existingCategoryId(categoryId)
+                val changed = trimmedTitle != current.note.title ||
+                    trimmedBody != current.note.body ||
+                    newCategoryId != current.note.categoryId ||
+                    tagKeys(tagNames) != tagKeys(current.tags.map { it.name })
+                if (changed) {
+                    repository.updateNote(id, trimmedTitle, trimmedBody, newCategoryId, tagNames)
                 }
                 _screen.value = Screen.View(id)
             } finally {
                 _saving.value = false
             }
         }
+    }
+
+    /** Returns [categoryId] if that category still exists, otherwise null, so a save never points to a deleted one. */
+    private suspend fun existingCategoryId(categoryId: String?): String? =
+        categoryId?.takeIf { id -> repository.observeCategories().first().any { it.id == id } }
+
+    /** Tag names as the repository compares them: trimmed, non-blank, ignoring case. */
+    private fun tagKeys(names: List<String>): Set<String> =
+        names.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+
+    /** Returns the new category's id. Throws [IllegalArgumentException] if the name is blank or taken. */
+    suspend fun createCategory(name: String): String = repository.createCategory(name)
+
+    /** Throws [IllegalArgumentException] if the name is blank or taken by another category. */
+    suspend fun renameCategory(id: String, name: String) = repository.renameCategory(id, name)
+
+    /** Deletes the category; its notes stay and become uncategorized. */
+    fun deleteCategory(id: String) {
+        viewModelScope.launch { repository.deleteCategory(id) }
     }
 
     /** Soft-deletes note [id] and returns to the list. */

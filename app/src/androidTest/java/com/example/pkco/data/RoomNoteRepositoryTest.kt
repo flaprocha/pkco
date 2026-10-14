@@ -3,9 +3,13 @@ package com.example.pkco.data
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.pkco.data.entity.NoteWithDetails
 import com.example.pkco.data.repository.RoomNoteRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -99,6 +103,56 @@ class RoomNoteRepositoryTest {
         assertEquals(work, after.note.categoryId)
         assertEquals(before.tags.toSet(), after.tags.toSet())
         assertEquals(2, repository.observeTags().first().size)
+    }
+
+    @Test
+    fun updateNote_withNoTagsAndNoCategory_unlinksThem_keepsTagRows() = runBlocking {
+        val work = repository.createCategory("Work")
+        val id = repository.createNote("Note", "", work, listOf("a", "b"))
+
+        repository.updateNote(id, "Note", "", null, emptyList())
+
+        val note = repository.observeNote(id).first()!!
+        assertNull(note.note.categoryId)
+        assertNull(note.category)
+        assertTrue(note.tags.isEmpty())
+        // Unused tags and the category stay in the database.
+        assertEquals(setOf("a", "b"), repository.observeTags().first().map { it.name }.toSet())
+        assertEquals(listOf(work), repository.observeCategories().first().map { it.id })
+    }
+
+    @Test
+    fun renameCategory_toFreeName_noteKeepsPointingToIt() = runBlocking {
+        val work = repository.createCategory("Work")
+        val id = repository.createNote("Note", "", work, emptyList())
+
+        repository.renameCategory(work, " Job ")
+
+        val note = repository.observeNote(id).first()!!
+        assertEquals(work, note.note.categoryId)
+        assertEquals("Job", note.category?.name)
+    }
+
+    @Test
+    fun observeNotes_emitsAgain_whenCategoryIsRenamedOrDeleted() = runBlocking {
+        val work = repository.createCategory("Work")
+        repository.createNote("Note", "", work, listOf("a"))
+        val emissions = Channel<NoteWithDetails>(Channel.UNLIMITED)
+        val collector = launch { repository.observeNotes().collect { emissions.send(it.single()) } }
+
+        // Room may emit the same list more than once, so skip emissions until one matches.
+        suspend fun awaitNote(matches: (NoteWithDetails) -> Boolean) = withTimeout(5_000) {
+            do {
+                val note = emissions.receive()
+            } while (!matches(note))
+        }
+
+        awaitNote { it.category?.name == "Work" }
+        repository.renameCategory(work, "Job")
+        awaitNote { it.category?.name == "Job" }
+        repository.deleteCategory(work)
+        awaitNote { it.note.categoryId == null && it.category == null }
+        collector.cancel()
     }
 
     @Test

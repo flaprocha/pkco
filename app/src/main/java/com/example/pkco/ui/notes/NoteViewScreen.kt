@@ -24,13 +24,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.example.pkco.R
-import com.example.pkco.data.entity.Note
+import com.example.pkco.data.entity.NoteWithDetails
 import java.time.Instant
 
-/** One note in full, with Edit and Delete. Delete asks for confirmation first. Links in the body stay plain text. */
+/**
+ * One note in full with its category and tags, with Edit and Delete. Delete asks for confirmation first.
+ * Links in the body stay plain text.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteViewScreen(note: Note, onBack: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun NoteViewScreen(details: NoteWithDetails, onBack: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+    val note = details.note
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -67,6 +71,21 @@ fun NoteViewScreen(note: Note, onBack: () -> Unit, onEdit: () -> Unit, onDelete:
                 SelectionContainer {
                     Text(note.title, style = MaterialTheme.typography.headlineSmall)
                 }
+            }
+            details.category?.let {
+                Text(
+                    stringResource(R.string.note_category, it.name),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            val tags = tagsText(details.tags)
+            if (tags.isNotEmpty()) {
+                Text(
+                    stringResource(R.string.note_tags, tags),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
             Text(
                 stringResource(R.string.edited_at, formatter.format(Instant.ofEpochMilli(note.updatedAt))),
