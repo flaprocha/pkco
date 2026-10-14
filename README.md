@@ -8,7 +8,7 @@
 ![Language](https://img.shields.io/badge/language-Kotlin-7F52FF)
 ![UI](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4)
 ![Storage](https://img.shields.io/badge/storage-Room%20%2F%20SQLite-lightgrey)
-![Status](https://img.shields.io/badge/status-Phase%201%20built-brightgreen)
+![Status](https://img.shields.io/badge/status-Phase%201%20complete-brightgreen)
 
 </div>
 
@@ -48,7 +48,7 @@ The project is planned in three phases. **Only Phase 1 is built for this class p
 - **Tags:** add up to 20 free tags to a note and remove them again. Tags are not case-sensitive.
 - **Search:** type words in the search box; results are ordered by relevance. Each word scores 3 points for a title match, 2 for a tag or category name match and 1 for a body match, partial words count, ties go to the most recently edited note.
 - **Filters:** narrow the list by one category and/or one tag, alone or together with a search.
-- **Quality:** works offline, keeps its data after the app is closed, survives screen rotation, shows messages instead of crashing when a save fails, and limits text length (title 200, body 20,000, tag 40, category name 60 characters).
+- **Quality:** works offline, keeps its data after the app is closed, keeps typed text when the screen rotates (the landscape form layout has a known bug, see Known limitations below), shows messages instead of crashing when a save fails, and limits text length (title 200, body 20,000, tag 40, category name 60 characters).
 
 Full details are in [`docs/Milestone-2.1-Feature-and-Workflow.md`](docs/Milestone-2.1-Feature-and-Workflow.md). A guided tour for demonstrating the app is in [`docs/Demo-Script.md`](docs/Demo-Script.md).
 
@@ -96,7 +96,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 
 - Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
 - Sprint-by-sprint record with times, deviations and human interventions: [`SPRINT_LOG.md`](SPRINT_LOG.md)
-- Every sprint is one commit (Sprint 6 has a second commit that corrects its log entry), tagged `sprint-1` to `sprint-8`.
+- Each sprint is one commit tagged `sprint-1` to `sprint-8`. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
 
 | Sprint | Goal |
 | --- | --- |
@@ -147,7 +147,7 @@ If you did not use Android Studio first, create a `local.properties` file in the
 | What | Command | Notes |
 | --- | --- | --- |
 | JVM unit tests | `.\gradlew.bat testDebugUnitTest` | 10 tests for the search query builder; no phone needed |
-| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 29 tests at the end of Sprint 7: database and repository, relevance search and filters, a view-model error test and a UI flow test (create, rotate, edit, delete). The phone must be connected and unlocked |
+| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 29 tests (final run recorded in Sprint 8): database and repository, relevance search and filters, a view-model error test and a UI flow test (create, rotate, edit, delete). The phone must be connected and unlocked |
 | Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 12 minutes on a phone; also the script for the demo |
 
 > ⚠️ `connectedDebugAndroidTest` uninstalls the app and wipes its data when it finishes. Run `installDebug` afterwards, and create your test notes after that.
@@ -158,7 +158,7 @@ The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md);
 
 ## ⚠️ Known limitations
 
-- **Landscape form bug (found in the final manual test):** when the phone is rotated to landscape on the create or edit form, the Body field becomes too small to read and the form cannot be scrolled, so typed text cannot be seen or checked (the text is kept and saved). Portrait works. Not fixed because Sprint 8 is a freeze. See B-20 in [`docs/Backlog.md`](docs/Backlog.md).
+- **Landscape form bug (found in the final manual test):** when the phone is rotated to landscape on the create or edit form, the Body field becomes too small to read and the form cannot be scrolled, so typed text cannot be seen or checked (the text is kept and saved). Portrait works. Not fixed: the last sprint was a freeze on code. See B-20 in [`docs/Backlog.md`](docs/Backlog.md).
 - **Android 16 or newer only.** The app will not install on older versions. Only one phone model (Motorola moto g stylus 2025) was used for testing; there was no emulator or tablet testing.
 - **Phase 2 and 3 are not built:** no accounts, no cloud sync, no OCR or AI, no location, no voice notes, no web clipper, no database encryption. See [`docs/Backlog.md`](docs/Backlog.md).
 - **After Android stops the app in the background**, it reopens on the notes list; an unfinished draft, open dialogs, the search text and the filters are lost. Rotating the phone is handled.
