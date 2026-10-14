@@ -28,12 +28,19 @@ import com.example.pkco.data.entity.NoteWithDetails
 import java.time.Instant
 
 /**
- * One note in full with its category and tags, with Edit and Delete. Delete asks for confirmation first.
+ * One note in full with its category and tags, with Edit and Delete. Delete asks for confirmation first and is
+ * disabled while [deleting].
  * Links in the body stay plain text.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteViewScreen(details: NoteWithDetails, onBack: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun NoteViewScreen(
+    details: NoteWithDetails,
+    deleting: Boolean,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
     val note = details.note
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
@@ -47,7 +54,9 @@ fun NoteViewScreen(details: NoteWithDetails, onBack: () -> Unit, onEdit: () -> U
                 },
                 actions = {
                     TextButton(onClick = onEdit) { Text(stringResource(R.string.edit)) }
-                    TextButton(onClick = { confirmDelete = true }) { Text(stringResource(R.string.delete)) }
+                    TextButton(onClick = { confirmDelete = true }, enabled = !deleting) {
+                        Text(stringResource(R.string.delete))
+                    }
                 }
             )
         }

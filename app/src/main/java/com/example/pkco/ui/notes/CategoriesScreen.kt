@@ -49,8 +49,8 @@ import kotlinx.coroutines.launch
 fun CategoriesScreen(
     categories: List<Category>?,
     onBack: () -> Unit,
-    onCreate: suspend (name: String) -> Unit,
-    onRename: suspend (id: String, name: String) -> Unit,
+    onCreate: suspend (name: String) -> Boolean,
+    onRename: suspend (id: String, name: String) -> Boolean,
     onDelete: (id: String) -> Unit,
 ) {
     var newName by rememberSaveable { mutableStateOf("") }
@@ -65,9 +65,13 @@ fun CategoriesScreen(
         if (!adding) {
             adding = true
             scope.launch {
-                val rejected = saveCategoryName(newName, onCreate)
+                val result = saveCategoryName(newName, onCreate)
                 adding = false
-                if (rejected == null) newName = "" else addError = rejected
+                when (result) {
+                    NameSaveResult.Saved -> newName = ""
+                    is NameSaveResult.Rejected -> addError = result.message
+                    NameSaveResult.Failed -> Unit
+                }
             }
         }
     }
@@ -95,7 +99,7 @@ fun CategoriesScreen(
                 OutlinedTextField(
                     value = newName,
                     onValueChange = {
-                        newName = it
+                        newName = it.take(InputLimits.CATEGORY_NAME)
                         addError = null
                     },
                     modifier = Modifier.weight(1f),
@@ -116,7 +120,7 @@ fun CategoriesScreen(
                 ) { Text(stringResource(R.string.add)) }
             }
             when {
-                categories == null -> Unit
+                categories == null -> CenteredProgress()
                 categories.isEmpty() -> Box(
                     modifier = Modifier
                         .fillMaxWidth()

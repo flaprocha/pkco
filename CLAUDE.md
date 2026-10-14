@@ -47,6 +47,27 @@ Each query word is matched case-insensitively with partial matches; points add u
 - Rule: up to 8 whitespace-separated words, each scoring title 3 + (any tag or category name) 2 + body 1, partial LIKE match ignoring case (ASCII only), `%` `_` `\` escaped; score 0 hidden; order score, updatedAt, createdAt. Blank query = all notes in list order. User text is only ever a bind argument.
 - Filters: optional category and tag (AND with each other and the words). `NotesViewModel` keeps search text, category filter and tag filter across screens; the tag menu lists only tags used by non-deleted notes. A filter whose category was deleted or whose tag is no longer used resets to "All" automatically; "Clear" resets text and both filters.
 
+## Quality (Sprint 7)
+- Errors: `NotesViewModel` catches failed writes (never `CancellationException`) in save new/edit, delete note, create/rename/delete category, and exposes a one-shot `error: StateFlow<UserError?>` (`SaveNote`, `Delete`, `SaveCategory`). `NotesApp` maps it to a string resource, calls `errorShown()` and shows a Snackbar over every screen. On failure the screen, the draft and open dialogs stay; `saving` resets. Rejected category names (`IllegalArgumentException`) still show inline.
+- `saving` also guards delete (double taps ignored); Cancel and Back are ignored while a save runs; a finished save or delete only navigates if the user is still on that screen.
+- Limits in `InputLimits` (cut off while typing): title 200 (counter "n / 200" always shown), body 20,000 (counter above 90%), tag 40, category name 60, 20 tags per note (Add then shows "Maximum 20 tags").
+- Loading: `CenteredProgress` while the list, Categories, View or Edit has not loaded. A selected category deleted while a form is open falls back to "No category".
+- Rotation: screen, search text and filters live in the ViewModel; form fields, tag field, chips, category and dialogs use `rememberSaveable`; the list's `LazyListState` is hoisted into `NotesApp` (kept across rotation and opening a note). No `configChanges`.
+- Tests: `ui/notes/NoteFlowUiTest` (Compose UI test, `v2.createAndroidComposeRule<MainActivity>`, runs on the phone against the real database, unique timestamped names, removes its rows in `@After`) and `ui/notes/NotesViewModelErrorTest` (fake repository whose writes throw). Form fields have test tags in `FormTestTags`. Libraries: `ui-test-junit4` (androidTest) and `ui-test-manifest` (debug) from the Compose BOM.
+
+## Known issues
+- Process death (Android killing the app in the background) reopens on the list; drafts, dialogs, search text and filters are lost.
+- Case-insensitive matching (names, tags, search) covers only ASCII letters (SQLite NOCASE and LIKE).
+- Links in note bodies are plain text, not clickable.
+- No undo for deleting a note or a category.
+- No error screen if the database cannot open; failed reads (Flows) are not caught and would crash the app.
+- A note deleted while its Edit screen is open (only possible from outside this UI) returns to the list without a message; the draft is lost.
+- A category created from the form's "New category…" stays even if the note is then cancelled.
+- The error Snackbar is shown once; rotating while it is visible removes it.
+- Dropdown menus (category picker, list filters) close on rotation; only dialogs are kept.
+- Limits apply while typing only: a longer title or body saved before Sprint 7 is cut to the limit at the first keystroke in the Edit form.
+- Touch targets rely on Material 3's 48 dp minimum interactive size; not checked with an accessibility scanner.
+
 ## Build, test, install (PowerShell, repo root)
 ```powershell
 $env:JAVA_HOME = '<Android Studio folder>\jbr'   # session only

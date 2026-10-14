@@ -16,6 +16,7 @@ import com.example.pkco.data.entity.NoteWithDetails
 import com.example.pkco.data.entity.Tag
 import com.example.pkco.data.repository.NoteRepository
 import com.example.pkco.data.repository.RoomNoteRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,10 +41,13 @@ sealed interface Screen {
     data object Categories : Screen
 }
 
-/** The note id shown by a View or Edit screen, or null for the other screens. */
 /** What the list is searched and filtered by; null ids mean "All". */
 private data class SearchParams(val text: String, val categoryId: String?, val tagId: String?)
 
+/** A write that failed. The screen maps it to a message and shows it once. */
+enum class UserError { SaveNote, Delete, SaveCategory }
+
+/** The note id shown by a View or Edit screen, or null for the other screens. */
 private val Screen.noteId: String?
     get() = when (this) {
         is Screen.View -> noteId
@@ -124,7 +128,16 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _saving = MutableStateFlow(false)
+    /** True while a note is being saved or deleted; a second save or delete is ignored meanwhile. */
     val saving: StateFlow<Boolean> = _saving.asStateFlow()
+
+    private val _error = MutableStateFlow<UserError?>(null)
+    /** The last failed write, until the screen calls [errorShown]. */
+    val error: StateFlow<UserError?> = _error.asStateFlow()
+
+    fun errorShown() {
+        _error.value = null
+    }
 
     fun updateSearchText(text: String) {
         searchText = text
@@ -165,7 +178,10 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
         _screen.value = Screen.Categories
     }
 
-    /** Saves a new note with trimmed text, the chosen category and tags, then returns to the list. */
+    /**
+     * Saves a new note with trimmed text, the chosen category and tags, then returns to the list. On failure the
+     * form stays open with its text and [error] is set.
+     */
     fun saveNew(title: String, body: String, categoryId: String?, tagNames: List<String>) {
         val trimmedTitle = title.trim()
         val trimmedBody = body.trim()
@@ -174,7 +190,11 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.createNote(trimmedTitle, trimmedBody, existingCategoryId(categoryId), tagNames)
-                _screen.value = Screen.List
+                if (_screen.value == Screen.Create) _screen.value = Screen.List
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _error.value = UserError.SaveNote
             } finally {
                 _saving.value = false
             }
@@ -183,7 +203,8 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
 
     /**
      * Saves trimmed text, the chosen category and tags to note [id], then returns to its View screen.
-     * Nothing is written when text, category and tag set (ignoring case) are all unchanged.
+     * Nothing is written when text, category and tag set (ignoring case) are all unchanged. On failure the form
+     * stays open with its text and [error] is set.
      */
     fun saveEdit(id: String, title: String, body: String, categoryId: String?, tagNames: List<String>) {
         val trimmedTitle = title.trim()
@@ -194,7 +215,8 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
             try {
                 val current = repository.observeNote(id).first()
                 if (current == null) {
-                    _screen.value = Screen.List
+                    // Deleted meanwhile; selectedNote also returns to the list.
+                    if (_screen.value == Screen.Edit(id)) _screen.value = Screen.List
                     return@launch
                 }
                 val newCategoryId = existingCategoryId(categoryId)
@@ -205,7 +227,11 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
                 if (changed) {
                     repository.updateNote(id, trimmedTitle, trimmedBody, newCategoryId, tagNames)
                 }
-                _screen.value = Screen.View(id)
+                if (_screen.value == Screen.Edit(id)) _screen.value = Screen.View(id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _error.value = UserError.SaveNote
             } finally {
                 _saving.value = false
             }
@@ -220,24 +246,67 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
     private fun tagKeys(names: List<String>): Set<String> =
         names.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
 
-    /** Returns the new category's id. Throws [IllegalArgumentException] if the name is blank or taken. */
-    suspend fun createCategory(name: String): String = repository.createCategory(name)
+    /**
+     * Returns the new category's id, or null when the write failed ([error] is then set). Throws
+     * [IllegalArgumentException] if the name is blank or taken.
+     */
+    suspend fun createCategory(name: String): String? =
+        reportFailure(UserError.SaveCategory, passRejectedName = true) {
+            repository.createCategory(name)
+        }
 
-    /** Throws [IllegalArgumentException] if the name is blank or taken by another category. */
-    suspend fun renameCategory(id: String, name: String) = repository.renameCategory(id, name)
+    /**
+     * Returns false when the write failed ([error] is then set). Throws [IllegalArgumentException] if the name is
+     * blank or taken by another category.
+     */
+    suspend fun renameCategory(id: String, name: String): Boolean =
+        reportFailure(UserError.SaveCategory, passRejectedName = true) {
+            repository.renameCategory(id, name)
+        } != null
 
     /** Deletes the category; its notes stay and become uncategorized. */
     fun deleteCategory(id: String) {
-        viewModelScope.launch { repository.deleteCategory(id) }
+        viewModelScope.launch { reportFailure(UserError.Delete) { repository.deleteCategory(id) } }
     }
 
-    /** Soft-deletes note [id] and returns to the list. */
+    /** Soft-deletes note [id] and returns to the list. On failure the View screen stays and [error] is set. */
     fun delete(id: String) {
+        if (_saving.value) return
+        _saving.value = true
         viewModelScope.launch {
-            repository.deleteNote(id)
-            _screen.value = Screen.List
+            try {
+                if (reportFailure(UserError.Delete) { repository.deleteNote(id) } != null &&
+                    _screen.value == Screen.View(id)
+                ) {
+                    _screen.value = Screen.List
+                }
+            } finally {
+                _saving.value = false
+            }
         }
     }
+
+    /**
+     * Runs [write] and returns its result, or null after setting [error] to [failure] when it throws. Cancellation,
+     * and with [passRejectedName] a rejected name ([IllegalArgumentException]), are passed on to the caller.
+     */
+    private suspend fun <T> reportFailure(
+        failure: UserError,
+        passRejectedName: Boolean = false,
+        write: suspend () -> T,
+    ): T? =
+        try {
+            write()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalArgumentException) {
+            if (passRejectedName) throw e
+            _error.value = failure
+            null
+        } catch (_: Exception) {
+            _error.value = failure
+            null
+        }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

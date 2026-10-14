@@ -29,7 +29,7 @@ fun CategoryDropdown(
     categories: List<Category>,
     selectedId: String?,
     onSelect: (categoryId: String?) -> Unit,
-    onCreateCategory: suspend (name: String) -> String,
+    onCreateCategory: suspend (name: String) -> String?,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -79,7 +79,7 @@ fun CategoryDropdown(
         CategoryNameDialog(
             title = stringResource(R.string.new_category),
             confirmLabel = stringResource(R.string.create),
-            onConfirm = { name -> onSelect(onCreateCategory(name)) },
+            onConfirm = { name -> onCreateCategory(name)?.also(onSelect) != null },
             onDone = { creating = false }
         )
     }

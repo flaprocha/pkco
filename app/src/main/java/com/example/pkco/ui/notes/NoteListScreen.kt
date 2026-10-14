@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -40,7 +42,8 @@ import java.time.format.FormatStyle
 
 /**
  * The notes list with search and filters. [hasNotes] says whether any note exists at all; [notes] are the search
- * results. Either is null while the first load is running, and no list or empty text is drawn then.
+ * results. Either is null while the first load is running, and a progress indicator is drawn then. [listState]
+ * is owned by the caller, so the scroll position survives rotation and opening a note.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +62,7 @@ fun NoteListScreen(
     onAddNote: () -> Unit,
     onOpenNote: (id: String) -> Unit,
     onOpenCategories: () -> Unit,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -77,7 +81,7 @@ fun NoteListScreen(
                 modifier = Modifier.semantics { contentDescription = addLabel }
             ) {
                 // A text "+" avoids adding the Material icons library.
-                Text("+", style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.add_note_symbol), style = MaterialTheme.typography.headlineSmall)
             }
         }
     ) { innerPadding ->
@@ -110,7 +114,9 @@ fun NoteListScreen(
                 else -> null
             }
             when {
-                hasNotes == null || notes == null -> Unit
+                hasNotes == null || notes == null -> CenteredProgress(
+                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                )
                 emptyText != null -> Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -124,6 +130,7 @@ fun NoteListScreen(
                     val formatter = rememberEditedAtFormatter()
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        state = listState,
                         contentPadding = PaddingValues(
                             start = 16.dp,
                             end = 16.dp,

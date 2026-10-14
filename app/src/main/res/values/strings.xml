@@ -42,4 +42,10 @@
     <string name="filter_category">Category: %1$s</string>
     <string name="filter_tag">Tag: %1$s</string>
     <string name="nothing_found">Nothing found. Try other words or clear the filters.</string>
+    <string name="add_note_symbol">+</string>
+    <string name="char_count">%1$d / %2$d</string>
+    <string name="max_tags">Maximum %1$d tags</string>
+    <string name="error_save_note">Could not save the note. Please try again.</string>
+    <string name="error_delete">Could not delete. Please try again.</string>
+    <string name="error_save_category">Could not save the category. Please try again.</string>
 </resources>
