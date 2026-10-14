@@ -45,7 +45,7 @@ The project is planned in three phases. **Only Phase 1 is built for this class p
 
 - **Notes:** title and body, with any link pasted into the body. Open a note to read it, edit it, or delete it after a confirmation.
 - **Categories:** create, rename and delete categories; each note has at most one. Deleting a category keeps its notes, which become uncategorized.
-- **Tags:** add any number of free tags to a note (up to 20) and remove them again. Tags are not case-sensitive.
+- **Tags:** add up to 20 free tags to a note and remove them again. Tags are not case-sensitive.
 - **Search:** type words in the search box; results are ordered by relevance. Each word scores 3 points for a title match, 2 for a tag or category name match and 1 for a body match, partial words count, ties go to the most recently edited note.
 - **Filters:** narrow the list by one category and/or one tag, alone or together with a search.
 - **Quality:** works offline, keeps its data after the app is closed, survives screen rotation, shows messages instead of crashing when a save fails, and limits text length (title 200, body 20,000, tag 40, category name 60 characters).
@@ -96,7 +96,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 
 - Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
 - Sprint-by-sprint record with times, deviations and human interventions: [`SPRINT_LOG.md`](SPRINT_LOG.md)
-- Every sprint is one commit, tagged `sprint-1` to `sprint-8`.
+- Every sprint is one commit (Sprint 6 has a second commit that corrects its log entry), tagged `sprint-1` to `sprint-8`.
 
 | Sprint | Goal |
 | --- | --- |
@@ -158,14 +158,15 @@ The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md);
 
 ## ⚠️ Known limitations
 
+- **Landscape form bug (found in the final manual test):** when the phone is rotated to landscape on the create or edit form, the Body field becomes too small to read and the form cannot be scrolled, so typed text cannot be seen or checked (the text is kept and saved). Portrait works. Not fixed because Sprint 8 is a freeze. See B-20 in [`docs/Backlog.md`](docs/Backlog.md).
 - **Android 16 or newer only.** The app will not install on older versions. Only one phone model (Motorola moto g stylus 2025) was used for testing; there was no emulator or tablet testing.
 - **Phase 2 and 3 are not built:** no accounts, no cloud sync, no OCR or AI, no location, no voice notes, no web clipper, no database encryption. See [`docs/Backlog.md`](docs/Backlog.md).
-- **After Android stops the app in the background**, it reopens on the notes list; an unfinished draft, the search text and the filters are lost. Rotating the phone is handled.
+- **After Android stops the app in the background**, it reopens on the notes list; an unfinished draft, open dialogs, the search text and the filters are lost. Rotating the phone is handled.
 - **Case-insensitive matching works only for ASCII letters** in search, tags and category names ("Ção" and "ção" count as different).
 - **Links are plain text**, not clickable.
-- **No undo for delete.** Deleted notes are only hidden in the database; there is no screen to restore them.
-- **No error screen if the database cannot be opened**; the app would crash.
-- If a note is deleted while its edit screen is open, the app returns to the list without a message.
+- **No undo for deleting a note or a category.** Deleted notes are only hidden in the database; there is no screen to restore them.
+- **No error screen if the database cannot be opened**, and a failed database read is not caught; in both cases the app would crash.
+- If a note is deleted while its edit screen is open (only possible from outside this app's screens), the app returns to the list without a message and the draft is lost.
 - A category created from the note form's "New category…" dialog is kept even if the note is then cancelled.
 - Rotating the phone closes open dropdown menus and removes a visible message bar.
 - A note saved before the length limits existed and longer than a limit is cut at the first keystroke in Edit.
@@ -177,7 +178,7 @@ The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md);
 
 - **Planning and code assistance:** Claude and Claude Code (Anthropic), used as described in [How this project is being built](#-how-this-project-is-being-built) and recorded sprint by sprint in [`SPRINT_LOG.md`](SPRINT_LOG.md). The application code was written by Claude Code from prompts written by Claude; the team directed the work, tested every sprint by hand and is responsible for being able to explain it.
 - **Libraries and tools**, used under their own licenses (Apache License 2.0 for the Android, Kotlin, Gradle and KSP components; Eclipse Public License 1.0 for JUnit):
-  - Kotlin and the Compose compiler plugin (JetBrains)
+  - Kotlin, Kotlin coroutines and the Compose compiler plugin (JetBrains)
   - AndroidX: Jetpack Compose and Material 3, Activity, Lifecycle (ViewModel and runtime), Room, AndroidX Test and Espresso (Google)
   - Android Gradle Plugin (Google), Gradle (Gradle Inc.), KSP (Google)
   - JUnit 4

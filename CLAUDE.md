@@ -10,7 +10,7 @@ PKCO (Personal Knowledge and Context Organizer) is a native Android notes app fo
 - minSdk = compileSdk = targetSdk = 36 (Android 16). Newer Compose (1.12+) and Lifecycle (2.11+) need compileSdk 37, so they are held back.
 - Versions live in `gradle/libs.versions.toml`. Single module `app`, package `com.example.pkco`.
 
-## Phase 1 scope (the only phase built)
+## Phase 1 scope (the only phase built; complete after Sprint 8)
 Text notes only, fully offline: create, edit, delete (with confirmation), one optional category per note, free tags, Room storage, search ordered by relevance, filter the list by one category or one tag.
 Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic timestamps and geolocation) and Phase 3 (voice notes, web clipper, AI summaries/flashcards, backlog items in `docs/Backlog.md`). No INTERNET permission, no network code, no database encryption in Phase 1.
 

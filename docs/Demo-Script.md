@@ -42,7 +42,7 @@ Tap **Clear**: all four notes return.
 
 ## 5. Filters (1 min)
 
-1. Category = **Study**: only A. Tag = **kotlin**: only B.
+1. Category = **Study**: only A. Set Category back to **All**, then Tag = **kotlin**: only B. Set Tag back to **All**.
 2. Category = **Study** and search `kotlin`: only A.
 3. Open **Categories**, delete **Study**, go back: the category filter resets to "All", and notes A (and others in it) stay, now without a category.
 
