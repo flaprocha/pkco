@@ -1,6 +1,6 @@
 # PKCO — Product Backlog
 
-Last updated: October 10, 2026 · Group A
+Last updated: October 14, 2026 · Group A
 
 This is the living list of everything planned outside Phase 1, plus the items found while reviewing the project documents before Sprint 1. [Milestone 2.1](Milestone-2.1-Feature-and-Workflow.md) stays as the snapshot of what was agreed; this file is where status changes are recorded.
 
@@ -32,6 +32,17 @@ These items were not in the original plan. They were identified, discussed and l
 | B-07 | Voice-to-text notes | 3 | Milestone 2 | Not started |
 | B-08 | Web clipper extension | 3 | Milestone 2 | Not started |
 | B-09 | AI summaries and flashcards | 3 | Milestone 2 | Not started |
+
+## Items found while building Phase 1
+
+These came up during Sprints 1 to 6 as limitations of what was built. They are proposals and have not been confirmed by the team; the final list of known issues is in the README.
+
+| ID | Item | Phase | Origin | Status |
+| --- | --- | --- | --- | --- |
+| B-16 | Case-insensitive search and names for non-ASCII letters (for example "Ção" and "ção" count as different) | 2 (proposed) | Sprint 2 and 6: SQLite NOCASE and LIKE fold only ASCII | Not started |
+| B-17 | Undo for delete, or a trash view (notes are soft-deleted, so the data is still there) | 2 (proposed) | Sprint 4 | Not started |
+| B-18 | Clickable links inside notes | 2 (proposed) | Sprint 3: links are shown as plain text | Not started |
+| B-19 | Restore the open screen, search and filters after Android kills the app | 2 (proposed) | Sprint 3 and 6: the app reopens on the list | Not started |
 
 ## Gaps resolved in Milestone 2.1
 

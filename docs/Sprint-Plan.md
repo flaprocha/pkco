@@ -62,7 +62,7 @@ Claude's own behavior before any code is already worth logging: five small addit
 | Claude flagged that authentication in Phase 3 conflicts with Phase 2 cloud sync, and that Android 16 limits supported phones | Useful suggestion | Authentication moved to Phase 2; Android 16 kept because the test phone runs it |
 | Attaching the GitHub repo failed twice (account not linked, then a not-found error) before a lookup found the exact name | Requires intervention | Felipe had to link GitHub; repo is now attached |
 
-## Observations during Sprints 1 to 4
+## Observations during Sprints 1 to 6
 
 Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. The sprint-by-sprint record itself is in `SPRINT_LOG.md`.
 
@@ -86,6 +86,13 @@ Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. T
 | Sprint 4: the start-time placeholder at the end of Claude's prompt was not replaced, so the log got a wrong date and "start time not given" | Requires intervention (prompt design) | Felipe corrected the row by hand; later prompts leave start and end times to Felipe instead of passing them through the prompt |
 | Sprint 4: Claude Code renamed `CreateNoteScreen.kt` to `NoteFormScreen.kt` and added one repository test (edit keeps category and tags) | Adds detail not requested | Reasonable and reported; the test was allowed as optional |
 | Sprint 4: Claude Code could not open its screenshot (outside its working folders) and used an adb UI dump instead | Tool limitation | None; Felipe's manual test covered the visual check |
+| Sprint 5: Claude Code's first adb check script was broken by Git Bash path conversion and pressed Back twice, leaving the app | Own slip, reported | It relaunched the app and redid the check; no data was changed |
+| Sprint 5: Claude Code made UI decisions the prompt left open (a category created from the form stays even if the note is cancelled; text left in the tag field at Save is not added; a leading `#` is kept in a tag name) | Adds detail not in Milestone 2.1 | Reported in the log; accepted |
+| After Sprint 5 Felipe found the sprint times inconsistent (some from Claude Code, some from messages) | Process problem | New rule: Claude Code reads the PC clock for Start and Code finished, Felipe adds End; all times `HH:MM:SS`; rows 1 to 5 normalized |
+| Sprint 6: one unit test failed first because its test input was wrong; Claude Code fixed the test, not the code | Useful behavior | Correct fix, reported |
+| Sprint 6: Claude Code changed the search field's padding after the tests had passed and did not rerun them | Process slip, reported | Layout-only change; Felipe's manual test covered it |
+| Sprint 6: Claude estimated 8 minutes for the manual test; it took 13:34 | Estimate too low | Expected durations are now larger |
+| Sprint 6: Felipe amended a commit that was already pushed, causing a rebase conflict | Human slip | Resolved with a follow-up commit; rule: amend only before the first push |
 
 ## Sprint log template
 
