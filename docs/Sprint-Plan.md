@@ -15,7 +15,7 @@ Eight sprints follow the Instruction3 cycle, and Felipe runs every step. Milesto
 
 Every Claude Code prompt contains the sprint goal, the areas it may change, a "do not" list (no Phase 2 or 3 features, no new libraries unless named), acceptance criteria, and a request for a short report: what changed, what was skipped, deviations from the prompt, tests run, and the commit. Felipe follows Claude's recommendations as given; every time he has to intervene, it goes in the log.
 
-All eight sprints are being compressed into one or two days because of the October 10 deadline (an extension has been requested). Each sprint log entry records start and end times, and the final report states this limit.
+All eight sprints were compressed into three days (October 12 to 14, 2026) because of the deadline, which Professor Lee extended to October 14. Each sprint log entry records start and end times, and the final report states this limit.
 
 ## Sprint 1 setup checklist
 
@@ -62,7 +62,7 @@ Claude's own behavior before any code is already worth logging: five small addit
 | Claude flagged that authentication in Phase 3 conflicts with Phase 2 cloud sync, and that Android 16 limits supported phones | Useful suggestion | Authentication moved to Phase 2; Android 16 kept because the test phone runs it |
 | Attaching the GitHub repo failed twice (account not linked, then a not-found error) before a lookup found the exact name | Requires intervention | Felipe had to link GitHub; repo is now attached |
 
-## Observations during Sprints 1 to 6
+## Observations during Sprints 1 to 8
 
 Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. The sprint-by-sprint record itself is in `SPRINT_LOG.md`.
 
@@ -93,10 +93,17 @@ Recorded by Claude on October 12, 2026 after reviewing the Claude Code output. T
 | Sprint 6: Claude Code changed the search field's padding after the tests had passed and did not rerun them | Process slip, reported | Layout-only change; Felipe's manual test covered it |
 | Sprint 6: Claude estimated 8 minutes for the manual test; it took 13:34 | Estimate too low | Expected durations are now larger |
 | Sprint 6: Felipe amended a commit that was already pushed, causing a rebase conflict | Human slip | Resolved with a follow-up commit; rule: amend only before the first push |
+| Sprint 7: the prompt's precondition expected the Sprint 6 commit title on top, but a log-fix commit was there | Planner assumption too strict | Claude Code stopped and asked; Felipe confirmed; later prompts allow docs or log-fix commits on top |
+| Sprint 7: Claude Code wrote a UTF-8 character in `CLAUDE.md` in the Windows code page | Process slip, reported | Found by its own check and fixed before the commit |
+| Sprint 8: the precondition required the phrase "Phase 1" in the demo script, which did not contain it | Planner assumption too strict | Claude Code stopped and asked; Felipe accepted the script unchanged |
+| Sprint 8: Claude Code found that demo-script step 5.1 contradicted the filter rule (filters combine with AND) | Planner document contradicts the app | Felipe corrected the step before the final run |
+| Sprint 8: the final manual test found a landscape bug (Body field unreadable, form not scrollable) that no automated test covered | Useful finding, human testing | Not fixed (code freeze); recorded in the README and as backlog item B-20 |
 
 ## Sprint log template
 
-After each sprint, fill one row, and use the deviations column for the Instruction3 observations listed below the table; copy this table into `SPRINT_LOG.md` in the repo.
+This is the blank template. The filled-in log, with one row per sprint, is [`SPRINT_LOG.md`](../SPRINT_LOG.md) in the repository root.
+
+After each sprint, one row was filled in, using the deviations column for the Instruction3 observations listed below the table.
 
 **Time format (from Sprint 6 on, October 14, 2026).** Every time is `HH:MM:SS` (24-hour, two digits each) on the Eastern Time clock of Felipe's computer. The time cell has the same lines in every row:
 
