@@ -73,7 +73,7 @@ Exact library versions are in [`gradle/libs.versions.toml`](gradle/libs.versions
 ## 🗂️ Repository layout
 
 ```text
-pkco-android/
+pkco/
 ├── app/
 │   ├── schemas/                         Exported Room schema (version 1)
 │   └── src/
@@ -123,7 +123,7 @@ AI tools are permitted in this course, and the team is responsible for being abl
 
 ### Run it from Android Studio
 
-1. Clone the repository: `git clone https://github.com/flaprocha/pkco-android` (it is private; you need access).
+1. Clone the repository: `git clone https://github.com/flaprocha/pkco` (it is private; you need access).
 2. In Android Studio choose **Open** and select the cloned folder. Let Gradle sync finish. Android Studio creates the `local.properties` file with your SDK location by itself.
 3. Make sure the Gradle JDK is the one bundled with Android Studio (Settings → Build, Execution, Deployment → Build Tools → Gradle).
 4. Pick your phone in the device list and press **Run** on the `app` configuration.

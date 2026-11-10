@@ -26,7 +26,7 @@ Setup is the first part of Sprint 1: it makes sure the phone is reachable and Cl
 - [ ] In Android Studio, set the Gradle JDK to the bundled one, so builds do not depend on the JDK 25.0.1 already on the computer
 - [ ] On the phone, tap Build number seven times in the About phone screen, then switch on USB debugging in Developer options (menu wording varies by maker)
 - [ ] Connect the phone with a data cable and accept the USB debugging prompt; the phone should appear in Android Studio's device list
-- [ ] Install Git for Windows and clone `https://github.com/flaprocha/pkco-android`
+- [ ] Install Git for Windows and clone `https://github.com/flaprocha/pkco`
 - [ ] Install Claude Code by following Anthropic's official setup instructions, sign in with the Pro account, and open it in the cloned folder
 - [ ] Save Milestone 2.1 and this document as Markdown in the `docs` folder of the repo
 - [ ] Create an empty `SPRINT_LOG.md` in the repo using the template at the end of this document
