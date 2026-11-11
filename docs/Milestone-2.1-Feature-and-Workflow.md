@@ -107,7 +107,7 @@ The app is a native Android app written in Kotlin with Jetpack Compose and Room,
 | Development machine | Windows 11 with Android Studio (to be installed) and its bundled JDK; the system JDK 25.0.1 is not relied on |
 | Test device | Physical Android 16 phone with Developer options and USB debugging on |
 | Automated tests | Unit tests for the repository and the search scoring rule |
-| Source control | Private GitHub repository `flaprocha/pkco` |
+| Source control | Public GitHub repository `flaprocha/pkco` |
 | AI-assisted workflow | Claude plans each sprint and Claude Code implements it; AI use and outside code are recorded in the sprint log and README |
 
 ## Backlog: gaps found while reviewing the documents
