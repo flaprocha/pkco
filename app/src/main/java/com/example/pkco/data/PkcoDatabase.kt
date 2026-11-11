@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.pkco.data.dao.CategoryDao
 import com.example.pkco.data.dao.NoteDao
 import com.example.pkco.data.dao.TagDao
@@ -35,7 +36,25 @@ abstract class PkcoDatabase : RoomDatabase() {
                     context.applicationContext,
                     PkcoDatabase::class.java,
                     NAME,
-                ).build().also { instance = it }
+                ).addCallback(PurgeSoftDeletedOnOpen).build().also { instance = it }
             }
+
+        /**
+         * Erases notes soft-deleted by versions before Sprint 9 (deletedAt set) and their note_tags rows, in one
+         * transaction, each time the database opens. It runs [NoteDao.purgeSoftDeleted]'s SQL on the raw database,
+         * because calling a DAO from inside onOpen would reopen the database recursively.
+         */
+        internal object PurgeSoftDeletedOnOpen : RoomDatabase.Callback() {
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                db.beginTransaction()
+                try {
+                    db.execSQL(NoteDao.PURGE_NOTE_TAGS_SQL)
+                    db.execSQL(NoteDao.PURGE_NOTES_SQL)
+                    db.setTransactionSuccessful()
+                } finally {
+                    db.endTransaction()
+                }
+            }
+        }
     }
 }

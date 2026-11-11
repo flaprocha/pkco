@@ -15,25 +15,27 @@ Text notes only, fully offline: create, edit, delete (with confirmation), one op
 Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic timestamps and geolocation) and Phase 3 (voice notes, web clipper, AI summaries/flashcards, backlog items in `docs/Backlog.md`). No INTERNET permission, no network code, no database encryption in Phase 1.
 
 ## Data model (Milestone 2.1)
-- Note: `id` (UUID), `title`, `body`, `categoryId` (nullable, one per note), `createdAt`, `updatedAt`, `deletedAt` (nullable), all UTC.
+- Note: `id` (UUID), `title`, `body`, `categoryId` (nullable, one per note), `createdAt`, `updatedAt`, all UTC. `deletedAt` (nullable) is reserved and unused since Sprint 9: delete is permanent.
 - Reserved nullable columns on Note, unused in Phase 1: `ownerId`, `sourceImageUri`, `extractedText`, `latitude`, `longitude`.
 - Category: `id` (UUID), `name` (unique). Deleting a category leaves its notes uncategorized.
 - Tag: `id` (UUID), `name` (unique, case-insensitive). NoteTag: `noteId`, `tagId` (many-to-many).
 - UUID primary keys everywhere, no auto-increment. UI talks only to a repository interface; Room is the first implementation.
 - Versioned Room database with exported schema and migrations; no destructive fallback.
+- Backup and transfer: `android:allowBackup="false"` and `res/xml/data_extraction_rules.xml` (referenced by `android:dataExtractionRules`) excludes all app data (root, file, database, sharedpref, external) from both `cloud-backup` and `device-transfer`.
 
 ## Data layer (Sprint 2)
 - Package `com.example.pkco.data`: `entity/` (Note, Category, Tag, NoteTag, NoteWithDetails), `dao/`, `PkcoDatabase` (version 1, `getInstance(context)`), `repository/` (`NoteRepository` interface, `RoomNoteRepository` with an injectable clock).
 - Tables `notes`, `categories`, `tags`, `note_tags`. Category and tag names use NOCASE collation with a unique index.
-- Notes are soft-deleted (`deletedAt` set); read queries filter `deletedAt IS NULL`. Unused tags are kept.
+- Delete is permanent (Sprint 9, a deviation from Milestone 2.1's soft delete): `deleteNote` removes the note's `note_tags` rows and the note row in one transaction. Unused tags are kept. Read queries still filter `deletedAt IS NULL`.
+- Purge: rows soft-deleted by earlier versions (`deletedAt` set) are erased with their `note_tags` rows, in one transaction, each time the database opens (`PkcoDatabase` callback `PurgeSoftDeletedOnOpen`, same SQL as `NoteDao.purgeSoftDeleted`). No schema change.
 - Schema JSON is exported to `app/schemas/` (KSP arg `room.schemaLocation`) and committed. Any schema change needs a version bump and a migration.
 - Tests: `app/src/androidTest/.../data/RoomNoteRepositoryTest.kt`, in-memory database, run with `connectedDebugAndroidTest`.
 
 ## UI (Sprints 3 to 5)
-- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `NoteViewScreen`, `NoteFormScreen` (shared by create and edit), `CategoryDropdown`, `TagEditor`, `CategoryNameDialog`, `CategoriesScreen`, `NoteLabels`; theme in `ui/theme/`. `MainActivity` only sets `PkcoTheme { NotesApp() }`.
+- Package `com.example.pkco.ui.notes`: `NotesViewModel`, `NotesApp`, `NoteListScreen`, `NoteViewScreen`, `NoteFormScreen` (shared by create and edit), `CategoryDropdown`, `TagEditor`, `CategoryNameDialog`, `CategoriesScreen`, `NoteLabels`; theme in `ui/theme/`. `MainActivity` calls `setRecentsScreenshotEnabled(false)` (the recents screen shows no note content; normal screenshots and no FLAG_SECURE) and sets `PkcoTheme { NotesApp() }`.
 - `NotesViewModel.Factory` (a `ViewModelProvider.Factory`) builds `RoomNoteRepository(PkcoDatabase.getInstance(application))`. No DI library.
 - No navigation library: the sealed `Screen` (`List`, `Create`, `View(noteId)`, `Edit(noteId)`, `Categories`) is a StateFlow in the ViewModel; `NotesApp` switches on it. `selectedNote` observes the View/Edit note through `observeNote` and returns to the list when it is gone.
-- Back (BackHandler): Edit -> View, View -> List, Create -> List, Categories -> List. Leaving a form discards the draft, which lives in `rememberSaveable` state. Delete asks in an AlertDialog, then soft-deletes.
+- Back (BackHandler): Edit -> View, View -> List, Create -> List, Categories -> List. Leaving a form discards the draft, which lives in `rememberSaveable` state. Delete asks in an AlertDialog ("permanently deleted and cannot be recovered"), then deletes permanently.
 - Form: title, category dropdown (No category, each category, "New category…" opens a dialog that creates and selects it), tag field with Add (or Done) and removable chips (trimmed, no blanks, no duplicates ignoring case), body. An edit that changes neither trimmed text, category nor tag set (ignoring case) writes nothing; otherwise `updateNote` gets the chosen category and tags (it replaces both).
 - Categories screen (top-bar "Categories" on the list): add field, rows with Rename (dialog) and Delete (confirmation; notes become uncategorized). Rejected names (repository `IllegalArgumentException`) show a string-resource message.
 - Cards show one line "Category  #tag #tag"; View shows "Category: …" and "Tags: …" under the title. Both update live from the repository Flows. Unused tags are never shown.

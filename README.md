@@ -164,7 +164,7 @@ The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md);
 - **After Android stops the app in the background**, it reopens on the notes list; an unfinished draft, open dialogs, the search text and the filters are lost. Rotating the phone is handled.
 - **Case-insensitive matching works only for ASCII letters** in search, tags and category names ("Ção" and "ção" count as different).
 - **Links are plain text**, not clickable.
-- **No undo for deleting a note or a category.** Deleted notes are only hidden in the database; there is no screen to restore them.
+- **No undo for deleting a note or a category.** Deleting a note is permanent: it is erased from the database and cannot be recovered.
 - **No error screen if the database cannot be opened**, and a failed database read is not caught; in both cases the app would crash.
 - If a note is deleted while its edit screen is open (only possible from outside this app's screens), the app returns to the list without a message and the draft is lost.
 - A category created from the note form's "New category…" dialog is kept even if the note is then cancelled.

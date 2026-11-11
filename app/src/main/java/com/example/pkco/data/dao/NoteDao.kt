@@ -30,7 +30,7 @@ interface NoteDao {
     @RawQuery(observedEntities = [Note::class, Category::class, Tag::class, NoteTag::class])
     fun search(query: SupportSQLiteQuery): Flow<List<NoteWithDetails>>
 
-    /** Returns the row even when it is soft-deleted. */
+    /** Returns the row even when its reserved deletedAt column is set. */
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getById(id: String): Note?
 
@@ -40,12 +40,33 @@ interface NoteDao {
     @Update
     suspend fun update(note: Note)
 
-    @Query("UPDATE notes SET deletedAt = :deletedAt WHERE id = :id AND deletedAt IS NULL")
-    suspend fun softDelete(id: String, deletedAt: Long)
+    /** Removes the note row. Call after [deleteNoteTags], inside a transaction. */
+    @Query("DELETE FROM notes WHERE id = :id")
+    suspend fun deleteById(id: String)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertNoteTags(links: List<NoteTag>)
 
     @Query("DELETE FROM note_tags WHERE noteId = :noteId")
     suspend fun deleteNoteTags(noteId: String)
+
+    @Query(PURGE_NOTE_TAGS_SQL)
+    suspend fun deleteSoftDeletedNoteTags()
+
+    @Query(PURGE_NOTES_SQL)
+    suspend fun deleteSoftDeletedNotes()
+
+    /** Erases notes soft-deleted by versions before Sprint 9, their note_tags rows first. */
+    @Transaction
+    suspend fun purgeSoftDeleted() {
+        deleteSoftDeletedNoteTags()
+        deleteSoftDeletedNotes()
+    }
+
+    companion object {
+        /** Shared with `PkcoDatabase`'s open callback, which runs the same purge on the raw database. */
+        const val PURGE_NOTE_TAGS_SQL =
+            "DELETE FROM note_tags WHERE noteId IN (SELECT id FROM notes WHERE deletedAt IS NOT NULL)"
+        const val PURGE_NOTES_SQL = "DELETE FROM notes WHERE deletedAt IS NOT NULL"
+    }
 }

@@ -20,6 +20,7 @@ import com.example.pkco.MainActivity
 import com.example.pkco.R
 import com.example.pkco.data.PkcoDatabase
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -95,9 +96,15 @@ class NoteFlowUiTest {
         waitForList()
         waitForNoText(editedTitle)
         waitForNoText(title)
+
+        // Delete is permanent: no row with either title is left in the database.
+        val db = PkcoDatabase.getInstance(rule.activity.applicationContext).openHelper.readableDatabase
+        val count = db.query("SELECT COUNT(*) FROM notes WHERE title IN (?, ?)", arrayOf<Any>(title, editedTitle))
+            .use { it.moveToFirst(); it.getInt(0) }
+        assertEquals(0, count)
     }
 
-    /** Removes this test's note (soft-deleted or not) and its tag, so nothing is left in the app's database. */
+    /** Removes this test's rows if the test failed before deleting the note, and its tags (unused tags are kept). */
     @After
     fun removeTestRows() {
         val db = PkcoDatabase.getInstance(rule.activity.applicationContext).openHelper.writableDatabase

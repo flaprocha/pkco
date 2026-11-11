@@ -14,7 +14,7 @@
     <string name="delete">Delete</string>
     <string name="edit_note">Edit note</string>
     <string name="delete_note_title">Delete note?</string>
-    <string name="delete_note_message">This note will be removed from your list.</string>
+    <string name="delete_note_message">This note will be permanently deleted and cannot be recovered.</string>
     <string name="categories">Categories</string>
     <string name="category">Category</string>
     <string name="no_category">No category</string>

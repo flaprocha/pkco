@@ -106,7 +106,7 @@ class SearchNotesTest {
     }
 
     @Test
-    fun zeroScoreAndSoftDeletedNotes_areHidden() = runBlocking {
+    fun zeroScoreAndDeletedNotes_areHidden() = runBlocking {
         val kept = note(1_000, title = "kotlin kept")
         val deleted = note(2_000, title = "kotlin deleted")
         note(3_000, title = "java", body = "nothing")

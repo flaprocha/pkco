@@ -11,6 +11,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // The recents (overview) screen shows a blank card instead of note content. Normal screenshots still work.
+        setRecentsScreenshotEnabled(false)
         setContent {
             PkcoTheme {
                 NotesApp()

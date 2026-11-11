@@ -6,7 +6,8 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * A text note. Timestamps are UTC epoch milliseconds. A note with [deletedAt] set is soft-deleted.
+ * A text note. Timestamps are UTC epoch milliseconds. [deletedAt] is reserved and unused: deleting a note removes
+ * the row, and rows soft-deleted by versions before Sprint 9 are purged when the database opens.
  * [ownerId], [sourceImageUri], [extractedText], [latitude] and [longitude] are reserved for
  * Phase 2 and stay null in Phase 1.
  */

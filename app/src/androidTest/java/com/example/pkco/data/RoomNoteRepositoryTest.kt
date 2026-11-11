@@ -3,7 +3,10 @@ package com.example.pkco.data
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.pkco.data.entity.Note
+import com.example.pkco.data.entity.NoteTag
 import com.example.pkco.data.entity.NoteWithDetails
+import com.example.pkco.data.entity.Tag
 import com.example.pkco.data.repository.RoomNoteRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
@@ -155,18 +158,63 @@ class RoomNoteRepositoryTest {
         collector.cancel()
     }
 
-    @Test
-    fun deleteNote_isSoft_hidesNoteButKeepsRow() = runBlocking {
-        val id = repository.createNote("Gone", "", null, listOf("x"))
+    private fun noteTagCount(noteId: String): Int =
+        db.openHelper.readableDatabase.query("SELECT COUNT(*) FROM note_tags WHERE noteId = ?", arrayOf(noteId))
+            .use { it.moveToFirst(); it.getInt(0) }
 
-        now = 3_000L
+    @Test
+    fun deleteNote_isPermanent_removesRowAndTagLinks() = runBlocking {
+        val id = repository.createNote("Gone", "", null, listOf("x", "y"))
+        assertEquals(2, noteTagCount(id))
+
         repository.deleteNote(id)
 
         assertTrue(repository.observeNotes().first().isEmpty())
         assertNull(repository.observeNote(id).first())
-        val row = db.noteDao().getById(id)
-        assertNotNull(row)
-        assertEquals(3_000L, row!!.deletedAt)
+        assertNull(db.noteDao().getById(id))
+        assertEquals(0, noteTagCount(id))
+        // Unused tags are kept (documented behavior).
+        assertEquals(listOf("x", "y"), repository.observeTags().first().map { it.name })
+    }
+
+    /** A live note with tag "live" and, inserted through the DAO, an old soft-deleted note with tag "old". */
+    private suspend fun insertLiveAndSoftDeletedNotes(): Pair<String, String> {
+        val live = repository.createNote("Live", "", null, listOf("live"))
+        val oldTag = Tag(id = "tag-old", name = "old")
+        db.tagDao().insert(oldTag)
+        val old = Note(id = "note-old", title = "Old", body = "", categoryId = null, createdAt = 1L, updatedAt = 1L,
+            deletedAt = 2L)
+        db.noteDao().insert(old)
+        db.noteDao().insertNoteTags(listOf(NoteTag(noteId = old.id, tagId = oldTag.id)))
+        assertEquals(1, noteTagCount(old.id))
+        return live to old.id
+    }
+
+    private suspend fun assertPurged(live: String, old: String) {
+        assertNull(db.noteDao().getById(old))
+        assertEquals(0, noteTagCount(old))
+        val kept = repository.observeNote(live).first()
+        assertNotNull(kept)
+        assertEquals(listOf("live"), kept!!.tags.map { it.name })
+        assertEquals(1, noteTagCount(live))
+    }
+
+    @Test
+    fun purgeSoftDeleted_removesOldDeletedNoteAndItsTagLinks_keepsLiveNotes() = runBlocking {
+        val (live, old) = insertLiveAndSoftDeletedNotes()
+
+        db.noteDao().purgeSoftDeleted()
+
+        assertPurged(live, old)
+    }
+
+    @Test
+    fun openCallback_purgesSoftDeletedNotes_keepsLiveNotes() = runBlocking {
+        val (live, old) = insertLiveAndSoftDeletedNotes()
+
+        PkcoDatabase.Companion.PurgeSoftDeletedOnOpen.onOpen(db.openHelper.writableDatabase)
+
+        assertPurged(live, old)
     }
 
     @Test

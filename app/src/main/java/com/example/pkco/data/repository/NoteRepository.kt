@@ -28,7 +28,7 @@ interface NoteRepository {
     /** Updates a note and replaces its tag set. Throws [IllegalArgumentException] if the note is missing or deleted. */
     suspend fun updateNote(id: String, title: String, body: String, categoryId: String?, tagNames: List<String>)
 
-    /** Soft delete: sets deletedAt; the row stays in the database. */
+    /** Permanent delete: removes the note row and its tag links in one transaction. Unused tags are kept. */
     suspend fun deleteNote(id: String)
 
     fun observeCategories(): Flow<List<Category>>

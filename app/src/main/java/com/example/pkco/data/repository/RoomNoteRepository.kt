@@ -63,7 +63,12 @@ class RoomNoteRepository(
         }
     }
 
-    override suspend fun deleteNote(id: String) = noteDao.softDelete(id, clock())
+    override suspend fun deleteNote(id: String) {
+        db.withTransaction {
+            noteDao.deleteNoteTags(id)
+            noteDao.deleteById(id)
+        }
+    }
 
     override fun observeCategories(): Flow<List<Category>> = categoryDao.observeAll()
 
