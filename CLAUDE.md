@@ -9,6 +9,7 @@ PKCO (Personal Knowledge and Context Organizer) is a native Android notes app fo
 - Room 2.8.5 (runtime, ktx, compiler via KSP)
 - minSdk = compileSdk = targetSdk = 36 (Android 16). Newer Compose (1.12+) and Lifecycle (2.11+) need compileSdk 37, so they are held back.
 - Versions live in `gradle/libs.versions.toml`. Single module `app`, package `com.example.pkco`.
+- Application ID (Sprint 10): `io.github.flaprocha.pkco`. `namespace` and every Kotlin package stay `com.example.pkco` (R class, schema folder `app/schemas/com.example.pkco.data.PkcoDatabase/`, test packages); never package-rename. The installed app is `io.github.flaprocha.pkco`; launch component `io.github.flaprocha.pkco/com.example.pkco.MainActivity`.
 
 ## Phase 1 scope (the only phase built; complete after Sprint 8)
 Text notes only, fully offline: create, edit, delete (with confirmation), one optional category per note, free tags, Room storage, search ordered by relevance, filter the list by one category or one tag.
@@ -77,9 +78,12 @@ $env:ANDROID_HOME = '<Android SDK folder>'        # session only
 .\gradlew.bat assembleDebug
 .\gradlew.bat connectedDebugAndroidTest   # instrumented tests, phone connected and unlocked
 .\gradlew.bat installDebug
-& "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n com.example.pkco/.MainActivity
+& "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n io.github.flaprocha.pkco/com.example.pkco.MainActivity
 ```
 `connectedDebugAndroidTest` uninstalls the app and wipes its data, so run `installDebug` afterwards.
+
+Release signing (Sprint 10): `signingConfigs.release` reads four Gradle properties via `providers.gradleProperty`: `PKCO_UPLOAD_STORE_FILE`, `PKCO_UPLOAD_STORE_PASSWORD`, `PKCO_UPLOAD_KEY_ALIAS`, `PKCO_UPLOAD_KEY_PASSWORD`. Set them only in the user-level `~/.gradle/gradle.properties` (or `$GRADLE_USER_HOME/gradle.properties`) or with `-P`, never in the repo. With all four set, the `release` build type is signed; with any missing, debug builds and tests are unaffected and `packageRelease` / `signReleaseBundle` fail with a message naming them. `isMinifyEnabled = false`. Claude Code never reads, creates, prints or commits a keystore or password and does not run release builds with real keys.
+
 JVM unit tests (`.\gradlew.bat testDebugUnitTest`, under `app/src/test/`) cover only pure Kotlin code such as the search query builder; Room tests need a device (Robolectric is not used).
 If drive C: is low on space, also set `GRADLE_USER_HOME`, `TMP` and `TEMP` to folders on another drive for the session (done in Sprint 1). A full C: also stops Windows' swap file from growing, and the Gradle JVM then crashes with "insufficient memory"; free space on C: and close other programs, or pass `-Dorg.gradle.jvmargs=-Xmx1536m` for the session.
 Test phone: Motorola moto g stylus 2025, Android 16.

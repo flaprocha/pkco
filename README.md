@@ -96,7 +96,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 
 - Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
 - Sprint-by-sprint record with times, deviations and human interventions: [`SPRINT_LOG.md`](SPRINT_LOG.md)
-- Each sprint is one commit tagged `sprint-1` to `sprint-8`. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
+- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprint 9 (tag `sprint-9`) followed as a privacy fix after a security audit. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
 
 | Sprint | Goal |
 | --- | --- |
@@ -108,6 +108,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 | 6 | Search, relevance order and filters |
 | 7 | Quality: error states, input limits, rotation, UI test |
 | 8 | Documentation, credits, final test pass and demo script |
+| 9 | Privacy fixes: permanent delete, hidden recents preview, no device-transfer backup |
 
 AI tools are permitted in this course, and the team is responsible for being able to explain all submitted code and design decisions.
 
@@ -135,7 +136,7 @@ $env:JAVA_HOME = '<Android Studio folder>\jbr'
 $env:ANDROID_HOME = '<Android SDK folder>'
 .\gradlew.bat assembleDebug
 .\gradlew.bat installDebug
-& "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n com.example.pkco/.MainActivity
+& "$env:ANDROID_HOME\platform-tools\adb.exe" shell am start -n io.github.flaprocha.pkco/com.example.pkco.MainActivity
 ```
 
 If you did not use Android Studio first, create a `local.properties` file in the repository root containing `sdk.dir=<path to your Android SDK>` (with `\` doubled on Windows). The file is ignored by Git.
@@ -147,12 +148,12 @@ If you did not use Android Studio first, create a `local.properties` file in the
 | What | Command | Notes |
 | --- | --- | --- |
 | JVM unit tests | `.\gradlew.bat testDebugUnitTest` | 10 tests for the search query builder; no phone needed |
-| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 29 tests (final run recorded in Sprint 8): database and repository, relevance search and filters, a view-model error test and a UI flow test (create, rotate, edit, delete). The phone must be connected and unlocked |
+| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 31 tests (latest run recorded in Sprint 10): database and repository, relevance search and filters, a view-model error test and a UI flow test (create, rotate, edit, delete). The phone must be connected and unlocked |
 | Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 12 minutes on a phone; also the script for the demo |
 
 > ⚠️ `connectedDebugAndroidTest` uninstalls the app and wipes its data when it finishes. Run `installDebug` afterwards, and create your test notes after that.
 
-The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the final run is recorded in the Sprint 8 row.
+The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 10 row.
 
 ---
 
