@@ -63,6 +63,10 @@ Each query word is matched case-insensitively with partial matches; points add u
 - Read errors: every Flow the UI collects (notes, search results, categories, tag menu via notes, selected note) is wrapped in `NotesViewModel.catchRead` (rethrows `CancellationException`, sets `readFailed`, emits nothing more) and restarted by `retryReads()` through the `readAttempt` counter. `NotesApp` shows `ReadErrorScreen` ("Could not load your notes. Please try again." and "Try again") instead of every screen while `readFailed` is true. No exception text shown, no Log calls. Write errors (Snackbar) unchanged. Test: `ui/notes/NotesViewModelReadErrorTest`.
 - Privacy policy: `docs/index.md` (served by GitHub Pages from `/docs` of main at https://flaprocha.github.io/pkco/). Keep it true for the merged release manifest, the code and the build files; update it before releasing any version that collects data.
 
+## Sprint 12
+- App icon (original vector artwork, no PNGs): adaptive icons `res/mipmap-anydpi/ic_launcher.xml` and `ic_launcher_round.xml` (same content: background `@color/ic_launcher_background`, foreground `@drawable/ic_launcher_foreground`, monochrome `@drawable/ic_launcher_monochrome` for themed icons), color `res/values/ic_launcher_background.xml` (#0F766E), and the two 108 dp vectors in `res/drawable/`. The manifest `<application>` has `android:icon="@mipmap/ic_launcher"` and `android:roundIcon="@mipmap/ic_launcher_round"`.
+- versionCode 1, versionName "0.1.0" (unchanged).
+
 ## Known issues
 - Process death (Android killing the app in the background) reopens on the list; drafts, dialogs, search text and filters are lost.
 - Case-insensitive matching (names, tags, search) covers only ASCII letters (SQLite NOCASE and LIKE).

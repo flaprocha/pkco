@@ -105,7 +105,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 
 - Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
 - Sprint-by-sprint record with times, deviations and human interventions: [`SPRINT_LOG.md`](SPRINT_LOG.md)
-- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprints 9 to 11 (tags `sprint-9` to `sprint-11`) followed as fixes after a security audit. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
+- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprints 9 to 11 (tags `sprint-9` to `sprint-11`) followed as fixes after a security audit, and Sprint 12 (tag `sprint-12`) added the app icon and a final validation. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
 
 | Sprint | Goal |
 | --- | --- |
@@ -120,6 +120,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 | 9 | Privacy fixes: permanent delete, hidden recents preview, no device-transfer backup |
 | 10 | Release identity: permanent application ID and release signing setup |
 | 11 | Landscape note form, read-error screen and privacy policy |
+| 12 | App icon and final validation |
 
 AI tools are permitted in this course, and the team is responsible for being able to explain all submitted code and design decisions.
 
@@ -159,12 +160,12 @@ If you did not use Android Studio first, create a `local.properties` file in the
 | What | Command | Notes |
 | --- | --- | --- |
 | JVM unit tests | `.\gradlew.bat testDebugUnitTest` | 10 tests for the search query builder; no phone needed |
-| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 35 tests (latest run recorded in Sprint 11): database and repository, relevance search and filters, view-model tests for failed saves and failed reads, a UI flow test (create, rotate, edit, delete) and a landscape form test. The phone must be connected and unlocked |
+| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 35 tests (latest run recorded in Sprint 12): database and repository, relevance search and filters, view-model tests for failed saves and failed reads, a UI flow test (create, rotate, edit, delete) and a landscape form test. The phone must be connected and unlocked |
 | Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 12 minutes on a phone; also the script for the demo |
 
 > ⚠️ `connectedDebugAndroidTest` uninstalls the app and wipes its data when it finishes. Run `installDebug` afterwards, and create your test notes after that.
 
-The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 11 row.
+The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 12 row.
 
 ---
 
@@ -193,7 +194,7 @@ The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md);
   - AndroidX: Jetpack Compose and Material 3, Activity, Lifecycle (ViewModel and runtime), Room, AndroidX Test and Espresso (Google)
   - Android Gradle Plugin (Google), Gradle (Gradle Inc.), KSP (Google)
   - JUnit 4
-- No code was copied from tutorials or other projects, and no images, icons, fonts or other third-party assets are included; the app uses the system default launcher icon.
+- No code was copied from tutorials or other projects, and no images, icons, fonts or other third-party assets are included. The app icon is original artwork drawn for this project as Android vector XML.
 - No real confidential data is used in this project.
 
 ---
