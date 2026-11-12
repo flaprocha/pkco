@@ -2,12 +2,19 @@ package com.example.pkco.ui.notes
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -43,7 +50,16 @@ fun NotesApp(viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Fact
 
     val readFailed by viewModel.readFailed.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            // Fills the whole window, including the strips beside the system bars and the display cutout.
+            .background(MaterialTheme.colorScheme.background)
+            // Keeps every screen and the Snackbar clear of the system bars and cutout on the left and right (landscape,
+            // both directions). The insets are consumed here, so the Scaffolds, top bars and the Snackbar inside do not
+            // pad them again. Top, bottom and keyboard insets are left to each screen, as before.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+    ) {
         // A failed read replaces every screen; the chosen screen comes back after "Try again".
         if (readFailed) ReadErrorScreen(onRetry = viewModel::retryReads) else CurrentScreen(viewModel, listState)
         SnackbarHost(

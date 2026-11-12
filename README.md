@@ -101,11 +101,11 @@ pkco/
 
 ## 🤖 How this project is being built
 
-Part of this assignment is an experiment in AI-assisted development. Over eight short sprints, **Claude** planned each step and wrote the instructions, and **Claude Code** implemented them, while the team member followed the recommendations, tested every sprint by hand on the phone and logged where the AI helped, drifted or needed correction.
+Part of this assignment is an experiment in AI-assisted development. Over thirteen short sprints, **Claude** planned each step and wrote the instructions, and **Claude Code** implemented them, while the team member followed the recommendations, tested every sprint by hand on the phone and logged where the AI helped, drifted or needed correction.
 
 - Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
 - Sprint-by-sprint record with times, deviations and human interventions: [`SPRINT_LOG.md`](SPRINT_LOG.md)
-- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprints 9 to 11 (tags `sprint-9` to `sprint-11`) followed as fixes after a security audit, and Sprint 12 (tag `sprint-12`) added the app icon and a final validation. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
+- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprints 9 to 11 (tags `sprint-9` to `sprint-11`) followed as fixes after a security audit, Sprint 12 (tag `sprint-12`) added the app icon and a final validation, and Sprint 13 (tag `sprint-13`) kept the content clear of the system bars in landscape. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
 
 | Sprint | Goal |
 | --- | --- |
@@ -121,6 +121,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 | 10 | Release identity: permanent application ID and release signing setup |
 | 11 | Landscape note form, read-error screen and privacy policy |
 | 12 | App icon and final validation |
+| 13 | System bar insets in landscape |
 
 AI tools are permitted in this course, and the team is responsible for being able to explain all submitted code and design decisions.
 
@@ -160,12 +161,12 @@ If you did not use Android Studio first, create a `local.properties` file in the
 | What | Command | Notes |
 | --- | --- | --- |
 | JVM unit tests | `.\gradlew.bat testDebugUnitTest` | 10 tests for the search query builder; no phone needed |
-| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 35 tests (latest run recorded in Sprint 12): database and repository, relevance search and filters, view-model tests for failed saves and failed reads, a UI flow test (create, rotate, edit, delete) and a landscape form test. The phone must be connected and unlocked |
+| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 36 tests (latest run recorded in Sprint 13): database and repository, relevance search and filters, view-model tests for failed saves and failed reads, a UI flow test (create, rotate, edit, delete), a landscape form test and a landscape test that the list stays clear of the system bars. The phone must be connected and unlocked |
 | Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 12 minutes on a phone; also the script for the demo |
 
 > ⚠️ `connectedDebugAndroidTest` uninstalls the app and wipes its data when it finishes. Run `installDebug` afterwards, and create your test notes after that.
 
-The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 12 row.
+The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 13 row.
 
 ---
 

@@ -55,8 +55,9 @@ Tap **Clear**: all four notes return.
 ## 7. Robustness (1 min)
 
 1. Rotate the phone on the create form with text typed: the text stays (in landscape the Body field is cut off and cannot be scrolled, a known limitation, B-20; rotate back to portrait to continue). Rotate on the list with a search and a filter active: both stay.
-2. Paste a very long text (more than 200 characters) into the title: it stops at 200 and the counter shows "200 / 200".
-3. Close the app completely (swipe it away) and reopen it: the notes, categories and tags are still there.
+2. Rotate the phone to landscape in both directions (navigation bar on the right, then on the left) on the list, a note, the form with the keyboard open, and Categories: no text, field or card is covered by the navigation bar.
+3. Paste a very long text (more than 200 characters) into the title: it stops at 200 and the counter shows "200 / 200".
+4. Close the app completely (swipe it away) and reopen it: the notes, categories and tags are still there.
 
 ## 8. Behind the scenes (for the recording)
 

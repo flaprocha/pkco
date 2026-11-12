@@ -40,6 +40,7 @@ Out of scope: Phase 2 (authentication, cloud sync, OCR/AI extraction, automatic 
 - Form: title, category dropdown (No category, each category, "New category…" opens a dialog that creates and selects it), tag field with Add (or Done) and removable chips (trimmed, no blanks, no duplicates ignoring case), body. An edit that changes neither trimmed text, category nor tag set (ignoring case) writes nothing; otherwise `updateNote` gets the chosen category and tags (it replaces both).
 - Categories screen (top-bar "Categories" on the list): add field, rows with Rename (dialog) and Delete (confirmation; notes become uncategorized). Rejected names (repository `IllegalArgumentException`) show a string-resource message.
 - Cards show one line "Category  #tag #tag"; View shows "Category: …" and "Tags: …" under the title. Both update live from the repository Flows. Unused tags are never shown.
+- Content respects the system bars and display cutout on the left and right in both landscape directions (see Sprint 13).
 - Flows are collected with `collectAsStateWithLifecycle`. Every visible text is a string resource; no Material icons library (the "+" is text).
 
 ## Relevance rule
@@ -67,6 +68,11 @@ Each query word is matched case-insensitively with partial matches; points add u
 - App icon (original vector artwork, no PNGs): adaptive icons `res/mipmap-anydpi/ic_launcher.xml` and `ic_launcher_round.xml` (same content: background `@color/ic_launcher_background`, foreground `@drawable/ic_launcher_foreground`, monochrome `@drawable/ic_launcher_monochrome` for themed icons), color `res/values/ic_launcher_background.xml` (#0F766E), and the two 108 dp vectors in `res/drawable/`. The manifest `<application>` has `android:icon="@mipmap/ic_launcher"` and `android:roundIcon="@mipmap/ic_launcher_round"`.
 - versionCode 1, versionName "0.1.0" (unchanged).
 
+## Sprint 13
+- Horizontal insets in one place: the root `Box` in `NotesApp` has `background(MaterialTheme.colorScheme.background)` (fills the whole window, including the strips beside the bars) and then `windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))`. It covers every screen inside it: list, view, create/edit form, Categories, read-error screen, centered progress and the Snackbar host. The padding consumes those insets, so the Scaffolds, TopAppBars, the Snackbar's `navigationBarsPadding` and the read-error screen's `safeDrawingPadding` add no second horizontal padding.
+- Vertical and keyboard behaviour unchanged: each screen still applies its top/bottom insets as before; the Sprint 11 landscape form (`verticalScroll` after `imePadding`, Body `heightIn(min = 160.dp)`) and portrait are unchanged. `MainActivity` still calls `enableEdgeToEdge()`.
+- Test: `ui/notes/ListLandscapeInsetsUiTest` forces landscape and reverse landscape on the list and checks that the search field lies between the left and right system bar and cutout insets (fails without the fix on the Moto with 3-button navigation; trivially passes when there are no side insets). Other screens are checked by hand.
+
 ## Known issues
 - Process death (Android killing the app in the background) reopens on the list; drafts, dialogs, search text and filters are lost.
 - Case-insensitive matching (names, tags, search) covers only ASCII letters (SQLite NOCASE and LIKE).
@@ -79,6 +85,7 @@ Each query word is matched case-insensitively with partial matches; points add u
 - Dropdown menus (category picker, list filters) close on rotation; only dialogs are kept.
 - Limits apply while typing only: a longer title or body saved before Sprint 7 is cut to the limit at the first keystroke in the Edit form.
 - Touch targets rely on Material 3's 48 dp minimum interactive size; not checked with an accessibility scanner.
+- Insets are tested automatically only on the list's search field (`ListLandscapeInsetsUiTest`); the other screens are verified by hand. 3-button navigation was tested; gesture navigation and tablets were not.
 
 ## Build, test, install (PowerShell, repo root)
 ```powershell
