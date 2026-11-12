@@ -162,7 +162,7 @@ If you did not use Android Studio first, create a `local.properties` file in the
 | --- | --- | --- |
 | JVM unit tests | `.\gradlew.bat testDebugUnitTest` | 10 tests for the search query builder; no phone needed |
 | Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 36 tests (latest run recorded in Sprint 13): database and repository, relevance search and filters, view-model tests for failed saves and failed reads, a UI flow test (create, rotate, edit, delete), a landscape form test and a landscape test that the list stays clear of the system bars. The phone must be connected and unlocked |
-| Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 12 minutes on a phone; also the script for the demo |
+| Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 13 minutes on a phone; also the script for the demo |
 
 > ⚠️ `connectedDebugAndroidTest` uninstalls the app and wipes its data when it finishes. Run `installDebug` afterwards, and create your test notes after that.
 
