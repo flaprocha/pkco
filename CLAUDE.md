@@ -58,12 +58,17 @@ Each query word is matched case-insensitively with partial matches; points add u
 - Rotation: screen, search text and filters live in the ViewModel; form fields, tag field, chips, category and dialogs use `rememberSaveable`; the list's `LazyListState` is hoisted into `NotesApp` (kept across rotation and opening a note). No `configChanges`.
 - Tests: `ui/notes/NoteFlowUiTest` (Compose UI test, `v2.createAndroidComposeRule<MainActivity>`, runs on the phone against the real database, unique timestamped names, removes its rows in `@After`) and `ui/notes/NotesViewModelErrorTest` (fake repository whose writes throw). Form fields have test tags in `FormTestTags`. Libraries: `ui-test-junit4` (androidTest) and `ui-test-manifest` (debug) from the Compose BOM.
 
+## Sprint 11
+- Landscape form: `NoteFormScreen` checks `LocalConfiguration` orientation. Portrait is unchanged (Body field `weight(1f)`, scrolls inside itself). Landscape: the form `Column` gets `verticalScroll` (after `imePadding`) and the Body field `heightIn(min = LANDSCAPE_BODY_MIN_HEIGHT)` (160 dp), growing with its text. Test: `ui/notes/NoteFormLandscapeUiTest` (forces landscape via `requestedOrientation`, resets it in `@After`, saves nothing).
+- Read errors: every Flow the UI collects (notes, search results, categories, tag menu via notes, selected note) is wrapped in `NotesViewModel.catchRead` (rethrows `CancellationException`, sets `readFailed`, emits nothing more) and restarted by `retryReads()` through the `readAttempt` counter. `NotesApp` shows `ReadErrorScreen` ("Could not load your notes. Please try again." and "Try again") instead of every screen while `readFailed` is true. No exception text shown, no Log calls. Write errors (Snackbar) unchanged. Test: `ui/notes/NotesViewModelReadErrorTest`.
+- Privacy policy: `docs/index.md` (served by GitHub Pages from `/docs` of main at https://flaprocha.github.io/pkco/). Keep it true for the merged release manifest, the code and the build files; update it before releasing any version that collects data.
+
 ## Known issues
 - Process death (Android killing the app in the background) reopens on the list; drafts, dialogs, search text and filters are lost.
 - Case-insensitive matching (names, tags, search) covers only ASCII letters (SQLite NOCASE and LIKE).
 - Links in note bodies are plain text, not clickable.
 - No undo for deleting a note or a category.
-- No error screen if the database cannot open; failed reads (Flows) are not caught and would crash the app.
+- A read failure replaces every screen with the read-error screen, so an unsaved form draft is lost.
 - A note deleted while its Edit screen is open (only possible from outside this UI) returns to the list without a message; the draft is lost.
 - A category created from the form's "New category…" stays even if the note is then cancelled.
 - The error Snackbar is shown once; rotating while it is visible removes it.

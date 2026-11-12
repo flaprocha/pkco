@@ -1,12 +1,16 @@
 package com.example.pkco.ui.notes
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
@@ -22,6 +26,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -29,6 +34,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.example.pkco.R
 import com.example.pkco.data.entity.Category
+
+/** The Body field's minimum height in landscape, where the whole form scrolls instead of the field filling the rest. */
+internal val LANDSCAPE_BODY_MIN_HEIGHT = 160.dp
 
 /** Saves the tag list as an ArrayList, which a Bundle can hold even when it is empty. */
 private val TagListSaver = Saver<List<String>, ArrayList<String>>(save = { ArrayList(it) }, restore = { it })
@@ -39,6 +47,10 @@ private val TagListSaver = Saver<List<String>, ArrayList<String>>(save = { Array
  * category created from the dropdown is saved at once and stays even if the draft is discarded. [categories] is
  * null while loading; a selected category that is deleted meanwhile falls back to "No category". Cancel is
  * disabled while [saving].
+ *
+ * Portrait: the Body field fills the space left and scrolls inside itself. Landscape: the whole form scrolls and
+ * the Body field is at least [LANDSCAPE_BODY_MIN_HEIGHT] tall, growing with its text. In both, the form shrinks
+ * above the keyboard, and the focused text field brings its cursor into view.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +71,8 @@ fun NoteFormScreen(
     var categoryId by rememberSaveable { mutableStateOf(initialCategoryId) }
     var tags by rememberSaveable(stateSaver = TagListSaver) { mutableStateOf(initialTags) }
     val canSave = !saving && (title.isNotBlank() || body.isNotBlank())
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val scrollState = rememberScrollState()
 
     // Keyed on the list only: a category just created from the dropdown is selected before the list has it.
     LaunchedEffect(categories) {
@@ -90,8 +104,9 @@ fun NoteFormScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding)
-                // Shrinks the column above the keyboard; the body field then scrolls inside itself.
+                // Shrinks the column above the keyboard (before the scroll, so the scroll area ends at the keyboard).
                 .imePadding()
+                .then(if (landscape) Modifier.verticalScroll(scrollState) else Modifier)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -122,7 +137,7 @@ fun NoteFormScreen(
                 onValueChange = { body = it.take(InputLimits.BODY) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .then(if (landscape) Modifier.heightIn(min = LANDSCAPE_BODY_MIN_HEIGHT) else Modifier.weight(1f))
                     .testTag(FormTestTags.BODY),
                 placeholder = { Text(stringResource(R.string.body_hint)) },
                 supportingText = if (body.length > InputLimits.BODY_COUNTER_FROM) {

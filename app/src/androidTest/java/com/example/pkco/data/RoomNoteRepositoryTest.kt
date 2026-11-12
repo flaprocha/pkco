@@ -269,4 +269,22 @@ class RoomNoteRepositoryTest {
         assertNull(note.longitude)
         assertNull(note.deletedAt)
     }
+
+    @Test
+    fun reservedColumns_stayNullAfterCreateAndUpdate() = runBlocking {
+        val categoryId = repository.createCategory("Work")
+        val id = repository.createNote("Title", "Body", categoryId, listOf("kotlin"))
+        now = 2_000L
+        repository.updateNote(id, "Title, edited", "Body, edited", null, listOf("room"))
+
+        // Read straight from the table, so nothing in the entity mapping can hide a written value.
+        db.openHelper.readableDatabase.query(
+            "SELECT ownerId, sourceImageUri, extractedText, latitude, longitude, updatedAt FROM notes WHERE id = ?",
+            arrayOf<Any>(id),
+        ).use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(2_000L, cursor.getLong(5))
+            for (column in 0..4) assertTrue("column $column", cursor.isNull(column))
+        }
+    }
 }

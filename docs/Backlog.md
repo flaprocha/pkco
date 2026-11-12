@@ -43,7 +43,7 @@ These came up during Sprints 1 to 6 as limitations of what was built. They are p
 | B-17 | Undo for delete, or a trash view (notes are soft-deleted, so the data is still there) | 2 (proposed) | Sprint 4 | Not started |
 | B-18 | Clickable links inside notes | 2 (proposed) | Sprint 3: links are shown as plain text | Not started |
 | B-19 | Restore the open screen, search and filters after Android kills the app | 2 (proposed) | Sprint 3 and 6: the app reopens on the list | Not started |
-| B-20 | Make the create and edit form usable in landscape (scrollable form, readable Body field) | 1 (bug fix) | Found in the Sprint 8 final manual test: in landscape the Body field is too small to read and the form does not scroll | Not started |
+| B-20 | Make the create and edit form usable in landscape (scrollable form, readable Body field) | 1 (bug fix) | Found in the Sprint 8 final manual test: in landscape the Body field is too small to read and the form does not scroll | Done (Sprint 11) |
 
 ## Gaps resolved in Milestone 2.1
 

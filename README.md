@@ -48,7 +48,7 @@ The project is planned in three phases. **Only Phase 1 is built for this class p
 - **Tags:** add up to 20 free tags to a note and remove them again. Tags are not case-sensitive.
 - **Search:** type words in the search box; results are ordered by relevance. Each word scores 3 points for a title match, 2 for a tag or category name match and 1 for a body match, partial words count, ties go to the most recently edited note.
 - **Filters:** narrow the list by one category and/or one tag, alone or together with a search.
-- **Quality:** works offline, keeps its data after the app is closed, keeps typed text when the screen rotates (the landscape form layout has a known bug, see Known limitations below), shows messages instead of crashing when a save fails, and limits text length (title 200, body 20,000, tag 40, category name 60 characters).
+- **Quality:** works offline, keeps its data after the app is closed, keeps typed text when the screen rotates, scrolls the note form in landscape, shows messages instead of crashing when a save or a read fails (a read failure shows a full-screen message with Try again), and limits text length (title 200, body 20,000, tag 40, category name 60 characters).
 
 Full details are in [`docs/Milestone-2.1-Feature-and-Workflow.md`](docs/Milestone-2.1-Feature-and-Workflow.md). A guided tour for demonstrating the app is in [`docs/Demo-Script.md`](docs/Demo-Script.md).
 
@@ -67,6 +67,15 @@ Full details are in [`docs/Milestone-2.1-Feature-and-Workflow.md`](docs/Mileston
 | Source control | Git and GitHub |
 
 Exact library versions are in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). The app has no network permission and no accounts; all data stays on the phone.
+
+---
+
+## 🔒 Privacy and data
+
+- **What is stored:** note titles and bodies, categories, tags, and when each note was created and last edited, only in a local Room database in the app's private storage. Cloud backup and device-to-device transfer are turned off, deleting a note is permanent, and uninstalling the app removes all its data.
+- **Permissions:** the app requests no permissions that give it access to anything: no INTERNET, location, contacts, camera, microphone or storage. The only entry in the merged manifest is `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, a signature-level permission that AndroidX Core declares to protect the app's own broadcast receivers.
+- **Reserved columns:** the `notes` table has nullable columns reserved for Phase 2 (`ownerId`, `sourceImageUri`, `extractedText`, `latitude`, `longitude`). They are unused and never written in Phase 1; an instrumented test checks that they stay null after a note is created and edited.
+- **Privacy policy:** https://flaprocha.github.io/pkco/ (source: [`docs/index.md`](docs/index.md)).
 
 ---
 
@@ -96,7 +105,7 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 
 - Plan and sprint roadmap: [`docs/Sprint-Plan.md`](docs/Sprint-Plan.md)
 - Sprint-by-sprint record with times, deviations and human interventions: [`SPRINT_LOG.md`](SPRINT_LOG.md)
-- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprint 9 (tag `sprint-9`) followed as a privacy fix after a security audit. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
+- Each sprint is one commit tagged `sprint-1` to `sprint-8`; Sprints 9 to 11 (tags `sprint-9` to `sprint-11`) followed as fixes after a security audit. A few extra documentation commits (README, demo script, backlog, and one that corrects the Sprint 6 log entry) sit between them.
 
 | Sprint | Goal |
 | --- | --- |
@@ -109,6 +118,8 @@ Part of this assignment is an experiment in AI-assisted development. Over eight 
 | 7 | Quality: error states, input limits, rotation, UI test |
 | 8 | Documentation, credits, final test pass and demo script |
 | 9 | Privacy fixes: permanent delete, hidden recents preview, no device-transfer backup |
+| 10 | Release identity: permanent application ID and release signing setup |
+| 11 | Landscape note form, read-error screen and privacy policy |
 
 AI tools are permitted in this course, and the team is responsible for being able to explain all submitted code and design decisions.
 
@@ -148,25 +159,24 @@ If you did not use Android Studio first, create a `local.properties` file in the
 | What | Command | Notes |
 | --- | --- | --- |
 | JVM unit tests | `.\gradlew.bat testDebugUnitTest` | 10 tests for the search query builder; no phone needed |
-| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 31 tests (latest run recorded in Sprint 10): database and repository, relevance search and filters, a view-model error test and a UI flow test (create, rotate, edit, delete). The phone must be connected and unlocked |
+| Tests on the phone | `.\gradlew.bat connectedDebugAndroidTest` | 35 tests (latest run recorded in Sprint 11): database and repository, relevance search and filters, view-model tests for failed saves and failed reads, a UI flow test (create, rotate, edit, delete) and a landscape form test. The phone must be connected and unlocked |
 | Manual test | [`docs/Demo-Script.md`](docs/Demo-Script.md) | About 12 minutes on a phone; also the script for the demo |
 
 > ⚠️ `connectedDebugAndroidTest` uninstalls the app and wipes its data when it finishes. Run `installDebug` afterwards, and create your test notes after that.
 
-The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 10 row.
+The test counts above are the ones recorded in [`SPRINT_LOG.md`](SPRINT_LOG.md); the latest run is recorded in the Sprint 11 row.
 
 ---
 
 ## ⚠️ Known limitations
 
-- **Landscape form bug (found in the final manual test):** when the phone is rotated to landscape on the create or edit form, the Body field becomes too small to read and the form cannot be scrolled, so typed text cannot be seen or checked (the text is kept and saved). Portrait works. Not fixed: the last sprint was a freeze on code. See B-20 in [`docs/Backlog.md`](docs/Backlog.md).
 - **Android 16 or newer only.** The app will not install on older versions. Only one phone model (Motorola moto g stylus 2025) was used for testing; there was no emulator or tablet testing.
 - **Phase 2 and 3 are not built:** no accounts, no cloud sync, no OCR or AI, no location, no voice notes, no web clipper, no database encryption. See [`docs/Backlog.md`](docs/Backlog.md).
 - **After Android stops the app in the background**, it reopens on the notes list; an unfinished draft, open dialogs, the search text and the filters are lost. Rotating the phone is handled.
 - **Case-insensitive matching works only for ASCII letters** in search, tags and category names ("Ção" and "ção" count as different).
 - **Links are plain text**, not clickable.
 - **No undo for deleting a note or a category.** Deleting a note is permanent: it is erased from the database and cannot be recovered.
-- **No error screen if the database cannot be opened**, and a failed database read is not caught; in both cases the app would crash.
+- If reading the notes fails (for example the database cannot be opened), a full-screen message with **Try again** replaces every screen; an unsaved draft on the note form is lost.
 - If a note is deleted while its edit screen is open (only possible from outside this app's screens), the app returns to the list without a message and the draft is lost.
 - A category created from the note form's "New category…" dialog is kept even if the note is then cancelled.
 - Rotating the phone closes open dropdown menus and removes a visible message bar.

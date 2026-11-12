@@ -25,7 +25,7 @@ import com.example.pkco.R
 
 /**
  * Shows the list, create, view, edit or categories screen, as chosen by [NotesViewModel.screen], and a Snackbar
- * over any of them when a write fails.
+ * over any of them when a write fails. When a read fails, a full-screen message with "Try again" replaces them.
  */
 @Composable
 fun NotesApp(viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Factory)) {
@@ -41,8 +41,11 @@ fun NotesApp(viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Fact
         snackbarHostState.showSnackbar(resources.getString(failure.messageRes()))
     }
 
+    val readFailed by viewModel.readFailed.collectAsStateWithLifecycle()
+
     Box(modifier = Modifier.fillMaxSize()) {
-        CurrentScreen(viewModel, listState)
+        // A failed read replaces every screen; the chosen screen comes back after "Try again".
+        if (readFailed) ReadErrorScreen(onRetry = viewModel::retryReads) else CurrentScreen(viewModel, listState)
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier

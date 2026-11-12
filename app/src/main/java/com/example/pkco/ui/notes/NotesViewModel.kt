@@ -18,10 +18,12 @@ import com.example.pkco.data.repository.NoteRepository
 import com.example.pkco.data.repository.RoomNoteRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -57,12 +59,40 @@ private val Screen.noteId: String?
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
+    private val _readFailed = MutableStateFlow(false)
+    /**
+     * True after a repository read (a Flow the screens collect) has failed, for example because the database
+     * cannot be opened. The app then shows a full-screen message until [retryReads].
+     */
+    val readFailed: StateFlow<Boolean> = _readFailed.asStateFlow()
+
+    /** Bumped by [retryReads]; every read restarts when it changes. */
+    private val readAttempt = MutableStateFlow(0)
+
+    /**
+     * Stops a failed read here instead of letting it crash the app: [readFailed] is set and the read emits nothing
+     * more until [retryReads]. Cancellation is passed on. The exception itself is not shown or logged.
+     */
+    private fun <T> Flow<T>.catchRead(): Flow<T> = catch { e ->
+        if (e is CancellationException) throw e
+        _readFailed.value = true
+    }
+
+    /** Runs [read] again each time [retryReads] is called; failures are caught by [catchRead]. */
+    private fun <T> restartable(read: () -> Flow<T>): Flow<T> = readAttempt.flatMapLatest { read().catchRead() }
+
+    /** Clears [readFailed] and restarts every read. */
+    fun retryReads() {
+        _readFailed.value = false
+        readAttempt.value++
+    }
+
     /** Notes from the repository, most recently edited first; null until the first load. */
-    val notes: StateFlow<List<NoteWithDetails>?> = repository.observeNotes()
+    val notes: StateFlow<List<NoteWithDetails>?> = restartable { repository.observeNotes() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** All categories by name; null until the first load. */
-    val categories: StateFlow<List<Category>?> = repository.observeCategories()
+    val categories: StateFlow<List<Category>?> = restartable { repository.observeCategories() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** The list's search text. Compose state, so the search field never lags behind typing. */
@@ -105,7 +135,9 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
             if (params.tagId != _tagFilter.value) _tagFilter.value = params.tagId
         }
         .distinctUntilChanged()
-        .flatMapLatest { repository.searchNotes(it.text, it.categoryId, it.tagId) }
+        // Also emits the same parameters again after retryReads, which restarts the search.
+        .combine(readAttempt) { params, _ -> params }
+        .flatMapLatest { repository.searchNotes(it.text, it.categoryId, it.tagId).catchRead() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _screen = MutableStateFlow<Screen>(Screen.List)
@@ -118,11 +150,14 @@ class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
     val selectedNote: StateFlow<NoteWithDetails?> = _screen
         .map { it.noteId }
         .distinctUntilChanged()
+        .combine(readAttempt) { id, _ -> id }
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(null)
             } else {
-                repository.observeNote(id).onEach { if (it == null && _screen.value.noteId == id) showList() }
+                repository.observeNote(id)
+                    .onEach { if (it == null && _screen.value.noteId == id) showList() }
+                    .catchRead()
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

@@ -48,4 +48,6 @@
     <string name="error_save_note">Could not save the note. Please try again.</string>
     <string name="error_delete">Could not delete. Please try again.</string>
     <string name="error_save_category">Could not save the category. Please try again.</string>
+    <string name="error_read">Could not load your notes. Please try again.</string>
+    <string name="try_again">Try again</string>
 </resources>
