@@ -24,6 +24,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $startTime = Get-Date
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 # ---------- repository root ----------
 $rootRaw = git rev-parse --show-toplevel 2>$null
@@ -278,13 +279,29 @@ if ($haveAab -and $jarsigner -and (Test-Path $jarsigner)) {
   if (($js | Select-Object -First 3) -match 'jar verified') {
     Add-Check 'Signing' 'AAB signature verifies' 'PASS' @('jar verified') 'jarsigner warnings (self-signed, no timestamp, JarInputStream notes) are normal for an upload key and an AAB.'
   } else { Add-Check 'Signing' 'AAB signature verifies' 'FAIL' @($js | Select-Object -First 5) }
-  if ($keytool -and (Test-Path $keytool) -and $apkCert) {
-    $kt = (Run-Tool $keytool @('-printcert', '-jarfile', $Aab)) -join "`n"
-    $km = [regex]::Match($kt, '([0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){31})')
-    $aabCert = ''
-    if ($km.Success) { $aabCert = ($km.Groups[1].Value -replace ':', '').ToLower() }
+  if ($apkCert) {
+    # Read the signer certificate straight from the AAB signature block (no keytool output parsing).
+    $aabCert = ''; $why = ''
+    try {
+      Add-Type -AssemblyName System.Security -ErrorAction SilentlyContinue
+      $zipA = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $Aab).Path)
+      try {
+        $sigEntry = $zipA.Entries | Where-Object { $_.FullName -match '^META-INF/[^/]+\.(RSA|DSA|EC)$' } | Select-Object -First 1
+        if ($sigEntry) {
+          $ms = New-Object IO.MemoryStream
+          $es = $sigEntry.Open(); $es.CopyTo($ms); $es.Dispose()
+          $cms = New-Object System.Security.Cryptography.Pkcs.SignedCms
+          $cms.Decode($ms.ToArray())
+          $signerCert = $cms.SignerInfos[0].Certificate
+          if (-not $signerCert) { $signerCert = $cms.Certificates[0] }
+          $sha = [System.Security.Cryptography.SHA256]::Create()
+          $aabCert = ([BitConverter]::ToString($sha.ComputeHash($signerCert.RawData)) -replace '-', '').ToLower()
+        } else { $why = 'no signature block (META-INF/*.RSA) found in the AAB' }
+      } finally { $zipA.Dispose() }
+    } catch { $why = $_.Exception.Message }
     if ($aabCert -and $aabCert -eq $apkCert) { Add-Check 'Signing' 'AAB and APK use the same certificate (the upload key)' 'PASS' @("certificate SHA-256: $aabCert") }
-    else { Add-Check 'Signing' 'AAB and APK use the same certificate (the upload key)' 'WARN' @("apk: $apkCert", "aab: $aabCert") 'Could not confirm.' }
+    elseif ($aabCert) { Add-Check 'Signing' 'AAB and APK use the same certificate (the upload key)' 'FAIL' @("apk: $apkCert", "aab: $aabCert") 'The two files are signed with different certificates.' }
+    else { Add-Check 'Signing' 'AAB and APK use the same certificate (the upload key)' 'WARN' @("apk: $apkCert", "aab: (not read)") "Could not read the AAB certificate: $why" }
   }
 } else {
   Add-Check 'Signing' 'AAB signature' 'WARN' @() 'Skipped: AAB or jarsigner not available (set JAVA_HOME).'

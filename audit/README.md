@@ -30,7 +30,7 @@ Build the release first (see `SPRINT_LOG.md` and `CLAUDE.md`), then from the rep
 ```powershell
 $env:JAVA_HOME = '<Android Studio folder>\jbr'     # session only
 $env:ANDROID_HOME = '<Android SDK folder>'          # session only
-powershell -ExecutionPolicy Bypass -File .\audit\pkco-audit.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\audit\pkco-audit.ps1
 ```
 
 Options: `-SkipGradle` (no dependency report, saves about a minute), `-SkipWeb` (no internet check of the policy page), `-Apk` and `-Aab` (other file locations).
